@@ -31,6 +31,7 @@ namespace XIVComboExpandedestPlugin.Combos
             // Other
             Hypercharge = 17209,
             Wildfire = 2878,
+            BarrelStabilizer = 7414,
             HeatBlast = 7410,
             HotShot = 2872,
             Drill = 16498,
@@ -63,6 +64,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 Drill = 58,
                 HeatedSlugshot = 60,
                 HeatedCleanShot = 64,
+                BarrelStabilizer = 66,
                 ChargedActionMastery = 74,
                 AirAnchor = 76,
                 QueenOverdrive = 80,
@@ -122,6 +124,17 @@ namespace XIVComboExpandedestPlugin.Combos
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             return IsActionOffCooldown(MCH.Wildfire) && level >= MCH.Levels.Wildfire ? MCH.Wildfire : actionID;
+        }
+    }
+
+    internal class MachinistBarrelStabilizerFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.MachinistBarrelStabilizerFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            var gauge = GetJobGauge<MCHGauge>();
+            return IsActionOffCooldown(MCH.BarrelStabilizer) && level >= MCH.Levels.BarrelStabilizer && gauge.Heat < 50 ? MCH.BarrelStabilizer : actionID;
         }
     }
 

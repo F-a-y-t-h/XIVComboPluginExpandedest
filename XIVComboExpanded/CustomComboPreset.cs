@@ -951,5 +951,9 @@ namespace XIVComboExpandedestPlugin
         [OrderedEnum]
         [CustomComboInfo("Fire 4 Auto Feature", "Fire 4 becomes Fire 1/3 when low on Astral Fire.", BLM.JobID)]
         BlackFire4Auto = 5003,
+        [OrderedEnum]
+        [ConflictingCombos(MachinistHyperfireFeature)]
+        [CustomComboInfo("Hypercharge to Barrel Stablizer", "Hypercharge becomes Barrel Stablizer if Barrel Stablizer is off-cooldown and below 50 heat.", MCH.JobID, MCH.Hypercharge)]
+        MachinistBarrelStabilizerFeature = 5004,
     }
 }
