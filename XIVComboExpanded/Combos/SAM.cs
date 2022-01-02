@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Statuses;
 
 namespace XIVComboExpandedestPlugin.Combos
 {
@@ -152,6 +153,7 @@ namespace XIVComboExpandedestPlugin.Combos
             return actionID;
         }
     }
+
     /*
     internal class SamuraiMangetsuCombo : CustomCombo
     {
@@ -211,9 +213,15 @@ namespace XIVComboExpandedestPlugin.Combos
                         }
                         else
                         {
-                            var Jinpudurat = FindEffectAny(SAM.Buffs.Jinpu);
-                            var Shifudurat = FindEffectAny(SAM.Buffs.Shifu);
-                            if (Shifudurat.RemainingTime >= Jinpudurat.RemainingTime) { return SAM.Mangetsu; }
+                            Status? jinpudurat = FindEffect(SAM.Buffs.Jinpu);
+                            Status? shifudurat = FindEffect(SAM.Buffs.Shifu);
+                            if (jinpudurat != null && shifudurat != null)
+                                {
+                                    if (shifudurat.RemainingTime >= jinpudurat.RemainingTime)
+                                    {
+                                        return SAM.Mangetsu;
+                                    }
+                                }
                         }
                     }
 
@@ -471,8 +479,8 @@ namespace XIVComboExpandedestPlugin.Combos
 
                         if (lastComboMove == SAM.Shifu && level >= SAM.Levels.Kasha)
                             return SAM.Kasha;
-
                     }
+
                     if (!gauge.HasGetsu)
                     {
                         if (lastComboMove == SAM.Hakaze)
@@ -481,15 +489,15 @@ namespace XIVComboExpandedestPlugin.Combos
                         if (lastComboMove == SAM.Jinpu && level >= SAM.Levels.Gekko)
                             return SAM.Gekko;
                     }
+
                     if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Yukikaze)
                         return SAM.Yukikaze;
 
                     return actionID;
-
                 }
             }
-            return actionID;
 
+            return actionID;
         }
     }
 }
