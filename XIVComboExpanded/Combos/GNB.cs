@@ -47,6 +47,7 @@ namespace XIVComboExpandedestPlugin.Combos
             public const byte
                 BrutalShell = 4,
                 SolidBarrel = 26,
+                BurstStrike = 30,
                 DemonSlaughter = 40,
                 SonicBreak = 54,
                 BowShock = 62,
@@ -73,13 +74,27 @@ namespace XIVComboExpandedestPlugin.Combos
                     var maxAmmo = level >= GNB.Levels.CartridgeCharge2 ? 3 : 2;
 
                     if ((lastComboMove == GNB.SolidBarrel || lastComboMove == GNB.BrutalShell) && level >= 30 && gauge.Ammo == maxAmmo)
-                        return GNB.BurstStrike;
+                      {
+                            if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeFeature))
+                            {
+                                if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
+                                {
+                                    if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
+                                        return GNB.Hypervelocity;
+                                }
+
+                                if (level >= GNB.Levels.BurstStrike && gauge.Ammo == maxAmmo)
+                                    return GNB.BurstStrike;
+                            }
+                        }
 
                     if (lastComboMove == GNB.KeenEdge && level >= GNB.Levels.BrutalShell)
                         return GNB.BrutalShell;
 
                     if (lastComboMove == GNB.BrutalShell && level >= GNB.Levels.SolidBarrel)
+                    {
                         return GNB.SolidBarrel;
+                    }
                 }
 
                 return GNB.KeenEdge;
@@ -136,6 +151,26 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (level >= GNB.Levels.BowShock && level >= GNB.Levels.SonicBreak)
                     return CalcBestAction(actionID, GNB.BowShock, GNB.SonicBreak);
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class GunbreakerDoubleDownFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.GunbreakerDoubleDownFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == GNB.BurstStrike || actionID == GNB.FatedCircle)
+            {
+                var gauge = GetJobGauge<GNBGauge>();
+                if (level >= GNB.Levels.DoubleDown && gauge.Ammo >= 2)
+                {
+                    if (IsActionOffCooldown(GNB.DoubleDown))
+                        return GNB.DoubleDown;
+                }
             }
 
             return actionID;
