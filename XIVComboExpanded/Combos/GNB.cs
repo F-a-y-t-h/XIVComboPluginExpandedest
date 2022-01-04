@@ -150,7 +150,11 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == GNB.BowShock || actionID == GNB.SonicBreak)
             {
                 if (level >= GNB.Levels.BowShock && level >= GNB.Levels.SonicBreak)
+                {
+                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak))
+                        return GNB.SonicBreak;
                     return CalcBestAction(actionID, GNB.BowShock, GNB.SonicBreak);
+                }
             }
 
             return actionID;
@@ -227,6 +231,25 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class GunbreakerNoMercyDoubleDownFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.GunbreakerNoMercyDoubleDownFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            var gauge = GetJobGauge<GNBGauge>();
+            if (gauge.Ammo >= 2 && HasEffect(GNB.Buffs.NoMercy))
+            {
+                if (GetCooldown(GNB.SolidBarrel).CooldownRemaining >= 0.5 && IsActionOffCooldown(GNB.BowShock) && IsEnabled(CustomComboPreset.GunbreakerNoMercyFeature))
+                    return GNB.BowShock;
+                if (IsActionOffCooldown(GNB.DoubleDown))
+                    return GNB.DoubleDown;
+            }
+
+            return actionID;
+        }
+    }
+
     internal class GunbreakerNoMercyFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.GunbreakerNoMercyFeature;
@@ -237,6 +260,8 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (HasEffect(GNB.Buffs.NoMercy))
                 {
+                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak))
+                        return GNB.SonicBreak;
                     var bowCd = GetCooldown(GNB.BowShock);
                     var sonicCd = GetCooldown(GNB.SonicBreak);
 
