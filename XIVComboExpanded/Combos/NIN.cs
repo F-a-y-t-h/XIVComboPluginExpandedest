@@ -43,7 +43,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 Suiton = 507,
                 Hidden = 614,
                 Bunshin = 1954,
-                ForkedRaijuReady = 2690,
+                RaijuReady = 2690,
                 FleetingRaijuReady = 2691;
         }
 
@@ -97,11 +97,8 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (IsEnabled(CustomComboPreset.NinjaArmorCrushRaijuFeature))
                 {
-                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.FleetingRaijuReady))
+                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.RaijuReady))
                         return NIN.FleetingRaiju;
-
-                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.ForkedRaijuReady))
-                        return NIN.ForkedRaiju;
                 }
 
                 if (comboTime > 0)
@@ -130,11 +127,8 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (IsEnabled(CustomComboPreset.NinjaAeolianEdgeRaijuFeature))
                 {
-                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.FleetingRaijuReady))
+                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.RaijuReady))
                         return NIN.FleetingRaiju;
-
-                    if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.ForkedRaijuReady))
-                        return NIN.ForkedRaiju;
                 }
 
                 if (comboTime > 0)
@@ -263,24 +257,6 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class NinjaBunshinKamaitachiFeature : CustomCombo
-    {
-        protected override CustomComboPreset Preset => CustomComboPreset.NinjaBunshinKamaitachiFeature;
-
-        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
-        {
-            if (actionID == NIN.Bunshin)
-            {
-                if (level >= NIN.Levels.PhantomKamaitachi && HasEffect(NIN.Buffs.Bunshin))
-                    return NIN.PhantomKamaitachi;
-
-                return NIN.Bunshin;
-            }
-
-            return actionID;
-        }
-    }
-
     internal class NinjaHuraijinRaijuFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.NinjaHuraijinRaijuFeature;
@@ -289,10 +265,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == NIN.Huraijin)
             {
-                if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.FleetingRaijuReady))
-                    return NIN.FleetingRaiju;
-
-                if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.ForkedRaijuReady))
+                if (level >= NIN.Levels.ForkedRaiju && HasEffect(NIN.Buffs.RaijuReady))
                     return NIN.ForkedRaiju;
             }
 
