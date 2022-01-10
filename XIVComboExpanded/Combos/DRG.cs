@@ -200,7 +200,7 @@ namespace XIVComboExpandedestPlugin.Combos
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             var gauge = GetJobGauge<DRGGauge>();
-            return IsActionOffCooldown(DRG.DragonfireDive) || !gauge.IsLOTDActive || !IsActionOffCooldown(DRG.Stardiver) ? DRG.DragonfireDive : DRG.Stardiver;
+            return (IsActionOffCooldown(DRG.DragonfireDive) && gauge.LOTDTimer > 7.5) || !gauge.IsLOTDActive || !IsActionOffCooldown(DRG.Stardiver) ? DRG.DragonfireDive : DRG.Stardiver;
         }
     }
 }
