@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>attick, daemitus, alymphocyte, grammernatzi</Authors>
+    <Authors>attick, daemitus, alymphocyte, grammernatzi, F-a-y-t-h</Authors>
     <Company>-</Company>
-    <Version>1.2.2.0</Version>
+    <Version>1.5.2.0</Version>
     <Description>This plugin condenses combos and mutually exclusive abilities onto a single button.</Description>
-    <Copyright>Copyleft my butt 2020 baybeeee</Copyright>
-    <PackageProjectUrl>https://github.com/grammernatzi/XIVComboPluginExpandedest</PackageProjectUrl>
+    <Copyright></Copyright>
+    <PackageProjectUrl>https://github.com/F-a-y-t-h/XIVComboPluginExpandedestF</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -35,6 +35,8 @@
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
     <AssemblyName>XIVComboExpandedest</AssemblyName>
     <RootNamespace>XIVComboExpandedestPlugin</RootNamespace>
+    <Product>XIVComboExpandedestF</Product>
+    <PackageId>XIVComboExpandedestF</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

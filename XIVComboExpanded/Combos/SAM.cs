@@ -477,10 +477,10 @@ namespace XIVComboExpandedestPlugin.Combos
 
                     if (meikyo)
                     {
-                        if (!gauge.HasKa)
-                            return SAM.Kasha;
                         if (!gauge.HasGetsu)
                             return SAM.Gekko;
+                        if (!gauge.HasKa)
+                            return SAM.Kasha;
                         return SAM.Yukikaze;
                     }
 
@@ -504,6 +504,9 @@ namespace XIVComboExpandedestPlugin.Combos
 
                     if (lastComboMove == SAM.Hakaze && level >= SAM.Levels.Yukikaze)
                         return SAM.Yukikaze;
+
+                    if (lastComboMove == SAM.Hakaze && level <= SAM.Levels.Yukikaze)
+                        return SAM.Jinpu;
 
                     return actionID;
                 }
