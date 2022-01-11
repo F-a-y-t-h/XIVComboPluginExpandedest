@@ -19,10 +19,18 @@ namespace XIVComboExpandedestPlugin.Combos
             DeathBlossom = 2254,
             AeolianEdge = 2255,
             TrickAttack = 2258,
+            Ten = 2259,
             Ninjutsu = 2260,
             Chi = 2261,
             JinNormal = 2263,
             Kassatsu = 2264,
+            Fuma = 2265,
+            Katon = 2266,
+            Raiton = 2267,
+            Hyoton = 2268,
+            Huton = 2269,
+            Doton = 2270,
+            Suiton = 2271,
             ArmorCrush = 3563,
             DreamWithinADream = 3566,
             TenChiJin = 7403,
@@ -58,6 +66,7 @@ namespace XIVComboExpandedestPlugin.Combos
             public const byte
                 GustSlash = 4,
                 AeolianEdge = 26,
+                Chi = 35,
                 Assassinate = 40,
                 Kassatsu = 50,
                 HakkeMujinsatsu = 52,
@@ -223,6 +232,37 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (HasCondition(ConditionFlag.InCombat))
                     return NIN.Mug;
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class NinjutsuHelperFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.NinjutsuHelperFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            var ohdata = OriginalHook(NIN.Ninjutsu);
+
+            if (ohdata == NIN.Huton || ohdata == NIN.Doton || ohdata == NIN.Suiton || (ohdata == NIN.Fuma && level <= 34))
+                return OriginalHook(NIN.Ninjutsu);
+
+            if (actionID == NIN.Ten)
+            {
+                if (ohdata == NIN.Katon)
+                    return OriginalHook(NIN.Ninjutsu);
+            }
+            if (actionID == NIN.Chi)
+            {
+                if (ohdata == NIN.Raiton)
+                    return OriginalHook(NIN.Ninjutsu);
+            }
+            if (actionID == NIN.JinNormal)
+            {
+                if (ohdata == NIN.Hyoton)
+                    return OriginalHook(NIN.Ninjutsu);
             }
 
             return actionID;
