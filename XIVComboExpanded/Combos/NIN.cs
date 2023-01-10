@@ -152,6 +152,9 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == NIN.AeolianEdge)
             {
+                if (CanUseAction(NIN.TrickAttack))
+                    return NIN.TrickAttack;
+
                 if (IsEnabled(CustomComboPreset.NinjaAeolianEdgeRaijuFeature))
                 {
                     if (level >= NIN.Levels.Raiju && HasEffect(NIN.Buffs.RaijuReady))
@@ -212,6 +215,33 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class NinjaTrickFeature : CustomCombo // Faye Extra
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.NinjaTrickFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == NIN.TrickAttack)
+            {
+                if (HasEffect(NIN.Buffs.Suiton) || HasEffect(NIN.Buffs.Hidden) || !IsActionOffCooldown(NIN.TrickAttack))
+                    return NIN.TrickAttack;
+                if (level >= 45)
+                {
+                    var ohdata = OriginalHook(NIN.Ninjutsu);
+                    if (ohdata == NIN.Suiton)
+                        return OriginalHook(NIN.Ninjutsu);
+                    if (ohdata == NIN.Raiton)
+                        return OriginalHook(NIN.JinNormal);
+                    if (ohdata == NIN.Fuma)
+                        return OriginalHook(NIN.Chi);
+                    return OriginalHook(NIN.Ten);
+                }
+            }
+
+            return actionID;
+        }
+    }
+
     internal class NinjaKassatsuDWaDFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.NinjaKassatsuDWaDFeature;
@@ -222,7 +252,7 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class NinjaHideMugFeature : CustomCombo
+    internal class NinjaHideMugFeature : CustomCombo // Faye Extra
     {
         protected override CustomComboPreset Preset => CustomComboPreset.NinjaHideMugFeature;
 
@@ -254,11 +284,13 @@ namespace XIVComboExpandedestPlugin.Combos
                 if (ohdata == NIN.Katon)
                     return OriginalHook(NIN.Ninjutsu);
             }
+
             if (actionID == NIN.Chi)
             {
                 if (ohdata == NIN.Raiton)
                     return OriginalHook(NIN.Ninjutsu);
             }
+
             if (actionID == NIN.JinNormal)
             {
                 if (ohdata == NIN.Hyoton)

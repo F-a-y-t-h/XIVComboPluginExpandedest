@@ -47,9 +47,12 @@ namespace XIVComboExpandedestPlugin.Combos
                 Bloodpiller = 62,
                 Quietus = 64,
                 Delirium = 68,
-                StalwartSoul = 72,
+                StalwartSoul = 40,
                 Shadow = 74,
-                LivingShadow = 80;
+                EdgeOfShadow = 74,
+                LivingShadow = 80,
+                SaltAndDarkness = 86,
+                Shadowbringer = 90;
         }
     }
 
@@ -61,6 +64,27 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == DRK.Souleater)
             {
+                var gauge = GetJobGauge<DRKGauge>();
+                var gcd = GetCooldown(DRK.HardSlash);
+
+                if ((LocalPlayer.CurrentMp > 9000 || gauge.DarksideTimeRemaining < 10) && gcd.CooldownRemaining > 1)
+                {
+                    if (level >= DRK.Levels.EdgeOfShadow)
+                        return DRK.EdgeOfShadow;
+                    if (level >= DRK.Levels.EdgeOfDarkness)
+                        return DRK.EdgeOfDarkness;
+                    if (level >= DRK.Levels.FloodOfDarkness && level < DRK.Levels.EdgeOfDarkness)
+                        return DRK.FloodOfDarkness;
+                }
+
+                if (lastComboMove == DRK.SyphonStrike && level >= DRK.Levels.Bloodpiller && gauge.Blood >= 90)
+                {
+                    return DRK.Bloodspiller;
+                }
+
+                if ((gauge.Blood >= 80 && HasEffect(DRK.Buffs.BloodWeapon)) || HasEffect(DRK.Buffs.Delirium))
+                        return DRK.Bloodspiller;
+
                 if (comboTime > 0)
                 {
                     if (lastComboMove == DRK.HardSlash && level >= DRK.Levels.SyphonStrike)
@@ -86,9 +110,9 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == (IsEnabled(CustomComboPreset.DarkEvilStalwartSoulCombo) ? DRK.Unleash : DRK.StalwartSoul))
             {
                 var gauge = GetJobGauge<DRKGauge>();
-                if (IsEnabled(CustomComboPreset.DRKOvercapFeature))
+                if (IsEnabled(CustomComboPreset.DRKOvercapFeature) && level > DRK.Levels.Quietus)
                 {
-                    if (gauge.Blood >= 90 && HasEffect(DRK.Buffs.BloodWeapon))
+                    if ((gauge.Blood >= 90 && HasEffect(DRK.Buffs.BloodWeapon)) || HasEffect(DRK.Buffs.Delirium))
                         return DRK.Quietus;
                 }
 

@@ -527,7 +527,6 @@ namespace XIVComboExpandedestPlugin
         [OrderedEnum]
         [CustomComboInfo("Forked/Fleeting Raiju Switch Feature", "Forked/Fleeting Raiju change depending on distance from target (works with the Raiju features).\nThere is a small delay on distance calculation, so if you've just moved out of or in range, it might not immediately work.", NIN.JobID, NIN.ForkedRaiju, NIN.FleetingRaiju)]
         NinjaSmartRaijuFeature = 3016,
-
         #endregion
         // ====================================================================================
         #region PALADIN
@@ -1024,7 +1023,7 @@ namespace XIVComboExpandedestPlugin
         #region BLUE MAGE
 
         [OrderedEnum]
-        [CustomComboInfo("Song of Torment Combo", "Bristle -> Song of Torment", BLU.JobID, BLU.Bristle)]
+        [CustomComboInfo("Song of Torment Combo", "Bristle -> Song of Torment", BLU.JobID, BLU.Bristle, BLU.RoseOfDestruction)]
         BluDoT = 201,
 
         [OrderedEnum]
@@ -1036,8 +1035,12 @@ namespace XIVComboExpandedestPlugin
         BluBurstCombo = 203,
 
         [OrderedEnum]
-        [CustomComboInfo("Moon Flute Opener", "Moon Flute Opener", BLU.JobID, BLU.TripleTrident)]
+        [CustomComboInfo("Moon Flute Opener", "Moon Flute Opener", BLU.JobID, BLU.Chirp)]
         BluTridentCombo = 204,
+
+        [OrderedEnum]
+        [CustomComboInfo("Trident Combo", "", BLU.JobID, BLU.Tingle)]
+        BluTingle = 205,
 
         #endregion
         [OrderedEnum]
@@ -1060,5 +1063,10 @@ namespace XIVComboExpandedestPlugin
         [OrderedEnum]
         [CustomComboInfo("Ninjutsu Helper", "Double Tapping a Ninjutsu invokes it insted of bunnying.", NIN.JobID, NIN.Ten, NIN.Chi, NIN.JinNormal)]
         NinjutsuHelperFeature = 5005,
+
+        [OrderedEnum] // Faye Extra
+        [CustomComboInfo("Trick Suitan", ".", NIN.JobID, NIN.TrickAttack)]
+        NinjaTrickFeature = 5006,
+
     }
 }

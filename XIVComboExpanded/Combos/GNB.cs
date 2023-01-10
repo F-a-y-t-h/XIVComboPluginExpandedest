@@ -73,16 +73,16 @@ namespace XIVComboExpandedestPlugin.Combos
                     var gauge = GetJobGauge<GNBGauge>();
                     var maxAmmo = level >= GNB.Levels.CartridgeCharge2 ? 3 : 2;
 
-                    if ((lastComboMove == GNB.SolidBarrel || lastComboMove == GNB.BrutalShell) && level >= 30 && gauge.Ammo == maxAmmo)
+                    if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
+                    {
+                        if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
+                            return GNB.Hypervelocity;
+                    }
+
+                    if ((lastComboMove == GNB.BrutalShell) && level >= 30 && gauge.Ammo == maxAmmo)
                       {
                             if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeFeature))
                             {
-                                if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
-                                {
-                                    if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
-                                        return GNB.Hypervelocity;
-                                }
-
                                 if (level >= GNB.Levels.BurstStrike && gauge.Ammo == maxAmmo)
                                     return GNB.BurstStrike;
                             }
@@ -112,6 +112,12 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == GNB.GnashingFang)
             {
+                if (IsEnabled(CustomComboPreset.GunbreakerBurstStrikeCont))
+                {
+                    if (level >= GNB.Levels.EnhancedContinuation && HasEffect(GNB.Buffs.ReadyToBlast))
+                        return GNB.Hypervelocity;
+                }
+
                 if (level >= GNB.Levels.Continuation)
                 {
                     if (HasEffect(GNB.Buffs.ReadyToRip) || HasEffect(GNB.Buffs.ReadyToTear) || HasEffect(GNB.Buffs.ReadyToGouge))

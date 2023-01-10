@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
@@ -167,6 +168,23 @@ namespace XIVComboExpandedestPlugin.Combos
         protected static uint OriginalHook(uint actionID) => Service.IconReplacer.OriginalHook(actionID);
 
         /// <summary>
+        /// Gets bool determining if action is greyed out or not.
+        /// </summary>
+        /// <param name="actionID">Action ID.</param>
+        /// <returns>A bool value of whether the action can be used or not.</returns>
+        protected static bool CanUseAction(uint actionID) => Service.IconReplacer.CanUseAction(actionID);
+
+        /// <summary>
+        /// Gets bool determining if player is moving.
+        /// </summary>
+        /// <returns>A bool value of whether the player is moving or not.</returns>
+        protected static unsafe bool IsMoving()
+        {
+            var agentMap = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentMap.Instance();
+            return agentMap != null && agentMap->IsPlayerMoving > 0 ? true : false;
+        }
+
+        /// <summary>
         /// Determine if the given preset is enabled.
         /// </summary>
         /// <param name="preset">Preset to check.</param>
@@ -261,7 +279,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
             foreach (var status in chara.StatusList)
             {
-                if (status.StatusId == effectID && (!sourceID.HasValue || status.SourceID == 0 || status.SourceID == InvalidObjectID || status.SourceID == sourceID))
+                if (status.StatusId == effectID && (!sourceID.HasValue || status.SourceId == 0 || status.SourceId == InvalidObjectID || status.SourceId == sourceID))
                     return status;
             }
 

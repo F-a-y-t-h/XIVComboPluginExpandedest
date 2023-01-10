@@ -33,7 +33,8 @@ namespace XIVComboExpandedestPlugin.Combos
             public const ushort
                 InnerRelease = 1177,
                 NascentChaos = 1897,
-                PrimalRendReady = 2624;
+                PrimalRendReady = 2624,
+                SurgingTempest = 2677;
         }
 
         public static class Debuffs
@@ -74,6 +75,11 @@ namespace XIVComboExpandedestPlugin.Combos
                 {
                     if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim)
                         return WAR.Maim;
+
+                    if (lastComboMove == WAR.Maim && CanUseAction(WAR.StormsEye) && !HasEffect(WAR.Buffs.SurgingTempest))
+                    {
+                        return OriginalHook(WAR.StormsEye);
+                    }
 
                     if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsPath)
                         return WAR.StormsPath;

@@ -20,7 +20,6 @@ namespace XIVComboExpandedestPlugin.Combos
             Oka = 7485,
             Shinten = 7490,
             Kyuten = 7491,
-            Kaiten = 7494,
             Guren = 7496,
             Senei = 16481,
             MeikyoShisui = 7499,
@@ -39,7 +38,6 @@ namespace XIVComboExpandedestPlugin.Combos
         public static class Buffs
         {
             public const ushort
-                Kaiten = 1229,
                 MeikyoShisui = 1233,
                 EyesOpen = 1252,
                 Jinpu = 1298,
@@ -62,7 +60,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 Kasha = 40,
                 Oka = 45,
                 Yukikaze = 50,
-                Kaiten = 52,
+                Kyuten = 62,
                 Guren = 70,
                 Senei = 72,
                 TsubameGaeshi = 76,
@@ -294,23 +292,6 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class SamuraiKaitenFeature : CustomCombo
-    {
-        protected override CustomComboPreset Preset => CustomComboPreset.SamuraiKaitenFeature;
-
-        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
-        {
-            if ((!IsEnabled(CustomComboPreset.SamuraiIaijutsuTsubameGaeshiFeature) && !IsEnabled(CustomComboPreset.SamuraiTsubameGaeshiIaijutsuFeature)) || actionID == SAM.OgiNamikiri)
-            {
-                var gauge = GetJobGauge<SAMGauge>();
-                if (!HasEffect(SAM.Buffs.Kaiten) && gauge.Kenki >= 20 && level >= SAM.Levels.Kaiten && ((OriginalHook(SAM.Iaijutsu) != SAM.Iaijutsu && actionID == SAM.Iaijutsu) || (HasEffect(SAM.Buffs.OgiNamikiriReady) && actionID == SAM.OgiNamikiri)) && (GCDClipCheck() || LocalPlayer?.TargetObject is null || IsEnabled(CustomComboPreset.SamuraiKaitenFeatureGCDOption)))
-                    return SAM.Kaiten;
-            }
-
-            return actionID;
-        }
-    }
-
     internal class SamuraiTsubameGaeshiIaijutsuFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.SamuraiTsubameGaeshiIaijutsuFeature;
@@ -320,12 +301,6 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == SAM.TsubameGaeshi)
             {
                 var gauge = GetJobGauge<SAMGauge>();
-                if (IsEnabled(CustomComboPreset.SamuraiKaitenFeature))
-                {
-                    if (!HasEffect(SAM.Buffs.Kaiten) && gauge.Kenki >= 20 && level >= SAM.Levels.Kaiten && OriginalHook(SAM.TsubameGaeshi) == SAM.TsubameGaeshi && OriginalHook(SAM.Iaijutsu) != SAM.Iaijutsu && (GCDClipCheck() || LocalPlayer?.TargetObject is null || IsEnabled(CustomComboPreset.SamuraiKaitenFeatureGCDOption)))
-                        return SAM.Kaiten;
-                }
-
                 return (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE) ? OriginalHook(SAM.TsubameGaeshi) : OriginalHook(SAM.Iaijutsu);
             }
 
@@ -342,12 +317,6 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == SAM.Iaijutsu)
             {
                 var gauge = GetJobGauge<SAMGauge>();
-                if (IsEnabled(CustomComboPreset.SamuraiKaitenFeature))
-                {
-                    if (!HasEffect(SAM.Buffs.Kaiten) && gauge.Kenki >= 20 && level >= SAM.Levels.Kaiten && OriginalHook(SAM.TsubameGaeshi) == SAM.TsubameGaeshi && OriginalHook(SAM.Iaijutsu) != SAM.Iaijutsu && (GCDClipCheck() || LocalPlayer?.TargetObject is null || IsEnabled(CustomComboPreset.SamuraiKaitenFeatureGCDOption)))
-                        return SAM.Kaiten;
-                }
-
                 return (level >= SAM.Levels.TsubameGaeshi && gauge.Sen == Sen.NONE) ? OriginalHook(SAM.TsubameGaeshi) : OriginalHook(SAM.Iaijutsu);
             }
 
@@ -448,8 +417,6 @@ namespace XIVComboExpandedestPlugin.Combos
                     {
                         if (gauge.MeditationStacks >= 3)
                             return SAM.Shoha;
-                        if (!HasEffect(SAM.Buffs.Kaiten) && gauge.Kenki >= 20 && level >= SAM.Levels.Kaiten && IsEnabled(CustomComboPreset.SamuraiKaitenFeature) && (GCDClipCheck() || LocalPlayer?.TargetObject is null || IsEnabled(CustomComboPreset.SamuraiKaitenFeatureGCDOption)))
-                            return SAM.Kaiten;
                         return SAM.OgiNamikiri;
                     }
 

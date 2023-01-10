@@ -37,8 +37,10 @@ namespace XIVComboExpandedestPlugin.Combos
         public static class Buffs
         {
             public const ushort
-                FlourishingSymmetry = 2693,
-                FlourishingFlow = 2694,
+                FlourishingSymmetry = 3017,
+                SilkenSymmetry = 2693,
+                FlourishingFlow = 3018,
+                SilkenFlow = 2694,
                 FlourishingFinish = 2698,
                 FlourishingStarfall = 2700,
                 StandardStep = 1818,
@@ -193,11 +195,11 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == DNC.Cascade)
             {
                 // From Fountain
-                if (level >= DNC.Levels.Fountainfall && HasEffect(DNC.Buffs.FlourishingFlow))
+                if (level >= DNC.Levels.Fountainfall && (HasEffect(DNC.Buffs.FlourishingFlow) || HasEffect(DNC.Buffs.SilkenFlow)))
                     return DNC.Fountainfall;
 
                 // From Cascade
-                if (level >= DNC.Levels.ReverseCascade && HasEffect(DNC.Buffs.FlourishingSymmetry))
+                if (level >= DNC.Levels.ReverseCascade && (HasEffect(DNC.Buffs.FlourishingSymmetry) || HasEffect(DNC.Buffs.SilkenSymmetry)))
                     return DNC.ReverseCascade;
 
                 // Cascade Combo
@@ -220,11 +222,11 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == DNC.Windmill)
             {
                 // From Bladeshower
-                if (level >= DNC.Levels.Bloodshower && HasEffect(DNC.Buffs.FlourishingFlow))
+                if (level >= DNC.Levels.Bloodshower && (HasEffect(DNC.Buffs.FlourishingFlow) || HasEffect(DNC.Buffs.SilkenFlow)))
                     return DNC.Bloodshower;
 
                 // From Windmill
-                if (level >= DNC.Levels.RisingWindmill && HasEffect(DNC.Buffs.FlourishingSymmetry))
+                if (level >= DNC.Levels.RisingWindmill && (HasEffect(DNC.Buffs.FlourishingSymmetry) || HasEffect(DNC.Buffs.SilkenSymmetry)))
                     return DNC.RisingWindmill;
 
                 // Windmill Combo
