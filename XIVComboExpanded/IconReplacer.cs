@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -12,7 +13,6 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using XIVComboExpandedestPlugin.Attributes;
 using XIVComboExpandedestPlugin.Combos;
-using System.Numerics;
 
 namespace XIVComboExpandedestPlugin
 {

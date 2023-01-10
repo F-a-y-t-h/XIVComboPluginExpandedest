@@ -69,7 +69,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 var gauge = GetJobGauge<DRKGauge>();
                 var gcd = GetCooldown(DRK.HardSlash);
 
-                if ((LocalPlayer.CurrentMp > 9000 || gauge.DarksideTimeRemaining < 10) && gcd.CooldownRemaining > 1)
+                if ((LocalPlayer?.CurrentMp > 9000 || gauge.DarksideTimeRemaining < 10) && gcd.CooldownRemaining > 1)
                 {
                     if (level >= DRK.Levels.EdgeOfShadow)
                         return DRK.EdgeOfShadow;

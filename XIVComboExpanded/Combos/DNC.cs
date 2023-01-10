@@ -259,6 +259,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 if (level >= DNC.Levels.Fountainfall && (HasEffect(DNC.Buffs.FlourishingFlow) || HasEffect(DNC.Buffs.SilkenFlow)))
                     return DNC.Fountainfall;
             }
+
             return actionID;
         }
     }

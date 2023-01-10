@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Statuses;
+
 using System.Security.Principal;
 
 namespace XIVComboExpandedestPlugin.Combos

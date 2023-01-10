@@ -133,8 +133,10 @@ namespace XIVComboExpandedestPlugin.Combos
                 var gauge = GetJobGauge<RDMGauge>();
 
                 if (level >= RDM.Levels.Verflare && (gauge.BlackMana < 50 || gauge.WhiteMana < 50) && IsEnabled(CustomComboPreset.RedMageComboReminderFeature) && actionID == RDM.Redoublement && gauge.ManaStacks == 0 && OriginalHook(RDM.Verthunder2) != RDM.Verflare && OriginalHook(RDM.Jolt2) == RDM.Jolt2)
-                 // return IsEnabled(CustomComboPreset.RedMageMeleeComboPlusVerholy) ? RDM.Verholy : RDM.Verflare;
                     return RDM.Manafication;
+
+                bool inAoE = this.filteredActions.Contains(this.FilteredLastComboMove) && CanUseAction(OriginalHook(RDM.Moulinet)) && IsEnabled(CustomComboPreset.RedMageComboToMoulinetFeature);
+                int manaCheck = inAoE ? 60 : 50;
 
                 if (IsEnabled(CustomComboPreset.RedMageMeleeComboPlus) && !IsEnabled(CustomComboPreset.RedMageMeleeComboPlusPlus))
                 {

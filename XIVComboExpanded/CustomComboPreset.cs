@@ -854,7 +854,7 @@ namespace XIVComboExpandedestPlugin
         NinjaGCDNinjutsuFeature = 3009,
 
         [OrderedEnum]
-        [CustomComboInfo("Ninjutsu Double-Tap Feature", "Double-tapping your last-used mudra executes your current Ninjutsu action, or replaces all three if it is currently Doton/Huton/Suiton/Goka/Hyosho.", NIN.JobID, NIN.Ten, NIN.Chi, NIN.Jin)]
+        [CustomComboInfo("Ninjutsu Double-Tap Feature", "Double-tapping your last-used mudra executes your current Ninjutsu action, or replaces all three if it is currently Doton/Huton/Suiton/Goka/Hyosho.", NIN.JobID, NIN.Ten, NIN.Chi, NIN.JinNormal)]
         NinjaTapNinjutsuFeature = 3020,
 
         [OrderedEnum]
@@ -1604,6 +1604,5 @@ namespace XIVComboExpandedestPlugin
         [OrderedEnum] // Faye Extra
         [CustomComboInfo("Trick Suitan", ".", NIN.JobID, NIN.TrickAttack)]
         NinjaTrickFeature = 5006,
-
     }
 }
