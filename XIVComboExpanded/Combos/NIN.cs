@@ -21,8 +21,9 @@ namespace XIVComboExpandedestPlugin.Combos
             TrickAttack = 2258,
             Ten = 2259,
             Ninjutsu = 2260,
+            Ten = 2259,
             Chi = 2261,
-            JinNormal = 2263,
+            Jin = 2263,
             Kassatsu = 2264,
             Fuma = 2265,
             Katon = 2266,
@@ -36,13 +37,23 @@ namespace XIVComboExpandedestPlugin.Combos
             TenChiJin = 7403,
             HakkeMujinsatsu = 16488,
             Meisui = 16489,
-            Jin = 18807,
+            JinMudra = 18807,
             Bunshin = 16493,
             Huraijin = 25876,
             PhantomKamaitachi = 25774,
             ForkedRaiju = 25777,
             FleetingRaiju = 25778,
-            ThrowingDagger = 2247;
+            ThrowingDagger = 2247,
+            Raiton = 2267,
+            Katon = 2266,
+            Hyoton = 2268,
+            Huton = 2269,
+            Doton = 2270,
+            Suiton = 2271,
+            Goka = 16491,
+            Hyosho = 16492,
+            Bhavacakra = 7402,
+            HellfrogMedium = 7401;
 
         public static class Buffs
         {
@@ -58,7 +69,8 @@ namespace XIVComboExpandedestPlugin.Combos
 
         public static class Debuffs
         {
-            public const ushort Placeholder = 0;
+            public const ushort
+                MugVuln = 638;
         }
 
         public static class Levels
@@ -73,6 +85,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 ArmorCrush = 54,
                 DreamWithinADream = 56,
                 Huraijin = 60,
+                Bhavacakra = 68,
                 Meisui = 72,
                 EnhancedKassatsu = 76,
                 Bunshin = 80,
@@ -133,7 +146,7 @@ namespace XIVComboExpandedestPlugin.Combos
                     if (lastComboMove == NIN.SpinningEdge && level >= NIN.Levels.GustSlash)
                         return NIN.GustSlash;
 
-                    if (lastComboMove == NIN.GustSlash && level >= NIN.Levels.ArmorCrush)
+                    if (lastComboMove == NIN.GustSlash && CanUseAction(NIN.ArmorCrush))
                         return NIN.ArmorCrush;
                 }
 
@@ -165,6 +178,12 @@ namespace XIVComboExpandedestPlugin.Combos
                     }
                 }
 
+                if (IsEnabled(CustomComboPreset.NinjaThrowingEdgeFeature))
+                {
+                    if (CanUseAction(NIN.ThrowingDagger) && !InMeleeRange())
+                        return NIN.ThrowingDagger;
+                }
+
                 if (comboTime > 0)
                 {
                     if (lastComboMove == NIN.SpinningEdge && level >= NIN.Levels.GustSlash)
@@ -189,7 +208,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == (IsEnabled(CustomComboPreset.NinjaEvilHakkeMujinsatsuCombo) ? NIN.DeathBlossom : NIN.HakkeMujinsatsu))
             {
-                if (comboTime > 0 && lastComboMove == NIN.DeathBlossom && level >= NIN.Levels.HakkeMujinsatsu)
+                if (comboTime > 0 && lastComboMove == NIN.DeathBlossom && CanUseAction(NIN.HakkeMujinsatsu))
                     return NIN.HakkeMujinsatsu;
 
                 return NIN.DeathBlossom;
@@ -207,7 +226,10 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == NIN.Kassatsu)
             {
-                if ((HasEffect(NIN.Buffs.Suiton) && !IsActionOffCooldown(NIN.Kassatsu)) || HasEffect(NIN.Buffs.Hidden))
+                if ((HasEffect(NIN.Buffs.Suiton) && (!IsActionOffCooldown(NIN.Kassatsu))) || HasEffect(NIN.Buffs.Hidden) || !CanUseAction(NIN.Kassatsu))
+                {
+                    if (IsEnabled(CustomComboPreset.NinjaKassatsuDWaDFeature) && !CanUseAction(NIN.Kassatsu) && !HasEffect(NIN.Buffs.Suiton) && !HasEffect(NIN.Buffs.Hidden))
+                        return OriginalHook(NIN.DreamWithinADream);
                     return NIN.TrickAttack;
             }
 
@@ -248,7 +270,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return (!IsActionOffCooldown(NIN.Kassatsu) && IsActionOffCooldown(NIN.DreamWithinADream)) || level < NIN.Levels.Kassatsu ? OriginalHook(NIN.DreamWithinADream) : actionID;
+            return (!IsActionOffCooldown(NIN.Kassatsu) && IsActionOffCooldown(NIN.DreamWithinADream)) || !CanUseAction(NIN.Kassatsu) ? OriginalHook(NIN.DreamWithinADream) : actionID;
         }
     }
 
@@ -260,6 +282,9 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == NIN.Hide)
             {
+                if (IsEnabled(CustomComboPreset.NinjaMugLockoutFeature) && IsActionOffCooldown(NIN.Mug) && TargetHasEffectAny(NIN.Debuffs.MugVuln) && FindTargetEffectAny(NIN.Debuffs.MugVuln)?.RemainingTime > 3)
+                    return actionID;
+
                 if (HasCondition(ConditionFlag.InCombat))
                     return NIN.Mug;
             }
@@ -310,7 +335,7 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == NIN.Chi)
             {
                 if (level >= NIN.Levels.EnhancedKassatsu && HasEffect(NIN.Buffs.Kassatsu))
-                    return NIN.Jin;
+                    return NIN.JinMudra;
             }
 
             return actionID;
@@ -372,6 +397,16 @@ namespace XIVComboExpandedestPlugin.Combos
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             return lastComboMove == NIN.GustSlash && comboTime > 0 ? NIN.ArmorCrush : actionID;
+        }
+    }
+
+    internal class NinjaBhavacakraToFroggieFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.NinjaBhavacakraToFroggieFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return lastComboMove == NIN.DeathBlossom || lastComboMove == NIN.HakkeMujinsatsu || level < NIN.Levels.Bhavacakra ? NIN.HellfrogMedium : actionID;
         }
     }
 }

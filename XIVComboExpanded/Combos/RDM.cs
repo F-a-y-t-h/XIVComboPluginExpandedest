@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
@@ -35,7 +37,8 @@ namespace XIVComboExpandedestPlugin.Combos
             Manafication = 7521,
             Acceleration = 7518,
             ContreSixte = 7519,
-            Fleche = 7517;
+            Fleche = 7517,
+            Reprise = 16529;
 
         public static class Buffs
         {
@@ -45,6 +48,8 @@ namespace XIVComboExpandedestPlugin.Combos
                 VerstoneReady = 1235,
                 Acceleration = 1238,
                 Dualcast = 1249,
+                EmboldenSelfBuff = 1239,
+                EmboldenRaidBuff = 1297,
                 LostChainspell = 2560;
         }
 
@@ -69,6 +74,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 Impact = 66,
                 Verflare = 68,
                 Verholy = 70,
+                Reprise = 76,
                 Scorch = 80,
                 Resolution = 90;
         }
@@ -112,6 +118,12 @@ namespace XIVComboExpandedestPlugin.Combos
 
     internal class RedMageMeleeCombo : CustomCombo
     {
+        private uint[] filteredActions = new uint[]
+        {
+            RDM.Veraero2,
+            RDM.Verthunder2,
+        };
+
         protected override CustomComboPreset Preset => CustomComboPreset.RedMageMeleeCombo;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
@@ -128,7 +140,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 {
                     if (OriginalHook(RDM.Verthunder2) == RDM.Verflare)
                     {
-                        if (IsEnabled(CustomComboPreset.RedMageMeleeComboPlusVerholy) && level >= RDM.Levels.Verholy)
+                        if (IsEnabled(CustomComboPreset.RedMageMeleeComboPlusVerholy) && CanUseAction(RDM.Verholy))
                             return RDM.Verholy;
                         return RDM.Verflare;
                     }
@@ -138,7 +150,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 {
                     if (OriginalHook(RDM.Verthunder2) == RDM.Verflare)
                     {
-                        if (gauge.BlackMana >= gauge.WhiteMana && level >= RDM.Levels.Verholy)
+                        if (gauge.BlackMana >= gauge.WhiteMana && CanUseAction(RDM.Verholy))
                         {
                             if (HasEffect(RDM.Buffs.VerstoneReady) && !HasEffect(RDM.Buffs.VerfireReady) && (gauge.BlackMana - gauge.WhiteMana <= 9))
                                 return RDM.Verflare;
@@ -147,21 +159,12 @@ namespace XIVComboExpandedestPlugin.Combos
                         }
                         else if (level >= RDM.Levels.Verflare)
                         {
-                            if (!HasEffect(RDM.Buffs.VerstoneReady) && HasEffect(RDM.Buffs.VerfireReady) && level >= RDM.Levels.Verholy && (gauge.WhiteMana - gauge.BlackMana <= 9))
+                            if (!HasEffect(RDM.Buffs.VerstoneReady) && HasEffect(RDM.Buffs.VerfireReady) && CanUseAction(RDM.Verholy) && (gauge.WhiteMana - gauge.BlackMana <= 9))
                                 return RDM.Verholy;
 
                             return RDM.Verflare;
                         }
                     }
-                }
-
-                if (actionID == RDM.Redoublement)
-                {
-                    if ((lastComboMove == RDM.Riposte || lastComboMove == RDM.EnchantedRiposte) && level >= RDM.Levels.Zwerchhau)
-                        return OriginalHook(RDM.Zwerchhau);
-
-                    if (lastComboMove == RDM.Zwerchhau && level >= RDM.Levels.Redoublement)
-                        return OriginalHook(RDM.Redoublement);
                 }
 
                 if (IsEnabled(CustomComboPreset.RedMageMeleeComboPlus) || IsEnabled(CustomComboPreset.RedMageMeleeComboPlusPlus))
@@ -172,7 +175,28 @@ namespace XIVComboExpandedestPlugin.Combos
                         return RDM.Resolution;
                 }
 
-                if (actionID == RDM.Moulinet)
+                if (actionID == RDM.Redoublement)
+                {
+                    if ((lastComboMove == RDM.Riposte || lastComboMove == RDM.EnchantedRiposte) && level >= RDM.Levels.Zwerchhau)
+                        return OriginalHook(RDM.Zwerchhau);
+
+                    if (lastComboMove == RDM.Zwerchhau && level >= RDM.Levels.Redoublement)
+                        return OriginalHook(RDM.Redoublement);
+
+                    if (gauge.ManaStacks == 0 && IsEnabled(CustomComboPreset.RedMageMeleeComboReprise) && level >= RDM.Levels.Reprise && OriginalHook(RDM.Reprise) != RDM.Reprise
+                        &&
+                        (!InMeleeRange() || (IsEnabled(CustomComboPreset.RedMageMeleeComboRepriseOption) && (gauge.BlackMana < manaCheck || gauge.WhiteMana < manaCheck))))
+                        return OriginalHook(RDM.Reprise);
+                }
+
+                if (level >= RDM.Levels.Verflare && IsEnabled(CustomComboPreset.RedMageComboReminderFeature) && actionID == RDM.Redoublement && gauge.ManaStacks == 0 && OriginalHook(RDM.Verthunder2) != RDM.Verflare && OriginalHook(RDM.Jolt2) == RDM.Jolt2 && (gauge.BlackMana < manaCheck || gauge.WhiteMana < manaCheck))
+                {
+                    if (IsEnabled(CustomComboPreset.RedMageComboReminderOption))
+                        return IsEnabled(CustomComboPreset.RedMageMeleeComboPlusVerholy) ? WHM.Holy : BLM.Flare;
+                    return IsEnabled(CustomComboPreset.RedMageMeleeComboPlusVerholy) ? RDM.Verholy : RDM.Verflare;
+                }
+
+                if ((actionID == RDM.Moulinet) || (inAoE && actionID == RDM.Redoublement))
                     return OriginalHook(RDM.Moulinet);
                 return OriginalHook(RDM.Riposte);
             }
@@ -195,7 +219,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 if (level >= RDM.Levels.Scorch && (lastComboMove == RDM.Verflare || lastComboMove == RDM.Verholy))
                     return RDM.Scorch;
 
-                if (actionID == RDM.Verstone && OriginalHook(RDM.Verthunder2) == RDM.Verflare && level >= RDM.Levels.Verholy)
+                if (actionID == RDM.Verstone && OriginalHook(RDM.Verthunder2) == RDM.Verflare && CanUseAction(RDM.Verholy))
                     return RDM.Verholy;
 
                 if (actionID == RDM.Verfire && OriginalHook(RDM.Verthunder2) == RDM.Verflare && level >= RDM.Levels.Verflare)
@@ -203,10 +227,12 @@ namespace XIVComboExpandedestPlugin.Combos
 
                 if (IsEnabled(CustomComboPreset.RedMageVerprocComboPlus))
                 {
-                    if (actionID == RDM.Verstone && (HasEffect(RDM.Buffs.Swiftcast) || HasEffect(RDM.Buffs.Dualcast) || HasEffect(RDM.Buffs.LostChainspell) || HasEffect(RDM.Buffs.Acceleration)) && level >= RDM.Levels.Veraero)
+                    if (actionID == RDM.Verstone && (HasEffect(RDM.Buffs.Swiftcast) || HasEffect(RDM.Buffs.Dualcast) || HasEffect(RDM.Buffs.LostChainspell) || HasEffect(RDM.Buffs.Acceleration)) && level >= RDM.Levels.Veraero
+                        && (!IsEnabled(CustomComboPreset.RedMageVerprocComboPlusOption) || !HasEffect(RDM.Buffs.VerstoneReady) || (HasEffect(RDM.Buffs.VerstoneReady) && HasEffect(RDM.Buffs.VerfireReady))))
                         return OriginalHook(RDM.Veraero);
 
-                    if (actionID == RDM.Verfire && (HasEffect(RDM.Buffs.Swiftcast) || HasEffect(RDM.Buffs.Dualcast) || HasEffect(RDM.Buffs.LostChainspell) || HasEffect(RDM.Buffs.Acceleration)) && level >= RDM.Levels.Verthunder)
+                    if (actionID == RDM.Verfire && (HasEffect(RDM.Buffs.Swiftcast) || HasEffect(RDM.Buffs.Dualcast) || HasEffect(RDM.Buffs.LostChainspell) || HasEffect(RDM.Buffs.Acceleration)) && level >= RDM.Levels.Verthunder
+                        && (!IsEnabled(CustomComboPreset.RedMageVerprocComboPlusOption) || !HasEffect(RDM.Buffs.VerfireReady) || (HasEffect(RDM.Buffs.VerstoneReady) && HasEffect(RDM.Buffs.VerfireReady))))
                         return OriginalHook(RDM.Verthunder);
                 }
 
@@ -221,6 +247,9 @@ namespace XIVComboExpandedestPlugin.Combos
                     if (actionID == RDM.Verfire && !HasEffect(RDM.Buffs.VerfireReady) && !HasCondition(ConditionFlag.InCombat) && level >= RDM.Levels.Verthunder)
                         return OriginalHook(RDM.Verthunder);
                 }
+
+                if (IsEnabled(CustomComboPreset.RedMageVerprocComboReprise) && level >= RDM.Levels.Reprise && OriginalHook(RDM.Reprise) != RDM.Reprise && IsMoving())
+                    return OriginalHook(RDM.Reprise);
 
                 if (actionID == RDM.Verstone && HasEffect(RDM.Buffs.VerstoneReady))
                     return RDM.Verstone;
@@ -256,7 +285,18 @@ namespace XIVComboExpandedestPlugin.Combos
 
             protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
             {
-                return (IsActionOffCooldown(RDM.Manafication) && !IsActionOffCooldown(RDM.Embolden) && level >= RDM.Levels.Manafication) ? RDM.Manafication : actionID;
+                return actionID == RDM.Embolden && ((IsActionOffCooldown(RDM.Manafication) && !IsActionOffCooldown(RDM.Embolden) && CanUseAction(RDM.Manafication))
+                    || (IsEnabled(CustomComboPreset.RedMageEmboldenLockoutFeature) && IsActionOffCooldown(RDM.Embolden) && HasEffectAny(RDM.Buffs.EmboldenRaidBuff) && FindEffectAny(RDM.Buffs.EmboldenRaidBuff)?.RemainingTime > 3)) ? RDM.Manafication : RDM.Embolden;
+            }
+        }
+
+        internal class RedMageEmboldenLockoutFeature : CustomCombo
+        {
+            protected override CustomComboPreset Preset => CustomComboPreset.RedMageEmboldenLockoutFeature;
+
+            protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+            {
+                return actionID == RDM.Embolden && IsActionOffCooldown(RDM.Embolden) && HasEffectAny(RDM.Buffs.EmboldenRaidBuff) && FindEffectAny(RDM.Buffs.EmboldenRaidBuff)?.RemainingTime > 3 ? SMN.Physick : actionID;
             }
         }
 
@@ -286,7 +326,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
             protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
             {
-                return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+                return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
             }
         }
     }

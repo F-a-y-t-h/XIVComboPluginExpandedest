@@ -45,7 +45,8 @@ namespace XIVComboExpandedestPlugin.Combos
                 Arrow = 915,
                 Spear = 916,
                 Ewer = 917,
-                Spire = 918;
+                Spire = 918,
+                Divination = 1878;
         }
 
         public static class Debuffs
@@ -112,19 +113,13 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class AstrologianMinorArcanaPlayFeature : CustomCombo
+    internal class AstrologianDivinationLockoutFeature : CustomCombo
     {
-        protected override CustomComboPreset Preset => CustomComboPreset.AstrologianMinorArcanaPlayFeature;
+        protected override CustomComboPreset Preset => CustomComboPreset.AstrologianDivinationLockoutFeature;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == AST.MinorArcana)
-            {
-                if (HasEffect(AST.Buffs.LordOfCrownsDrawn) || HasEffect(AST.Buffs.LadyOfCrownsDrawn))
-                    return OriginalHook(AST.CrownPlay);
-            }
-
-            return actionID;
+            return actionID == AST.Divination && IsActionOffCooldown(AST.Divination) && HasEffectAny(AST.Buffs.Divination) && FindEffectAny(AST.Buffs.Divination)?.RemainingTime > 3 ? SMN.Physick : actionID;
         }
     }
 
@@ -150,7 +145,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return OriginalHook(actionID) == actionID && HasCondition(ConditionFlag.InCombat) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+            return OriginalHook(actionID) == actionID && HasCondition(ConditionFlag.InCombat) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
 }

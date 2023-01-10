@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
@@ -46,13 +48,15 @@ namespace XIVComboExpandedestPlugin.Combos
             SummonTitan2 = 25839,
             SummonEmerald = 25804,
             SummonGaruda = 25807,
-            SummonGaruda2 = 25840;
+            SummonGaruda2 = 25840,
+            Rekindle = 25830;
 
         public static class Buffs
         {
             public const ushort
                 Aetherflow = 304,
-                FurtherRuin = 2701;
+                FurtherRuin = 2701,
+                SearingLight = 2703;
         }
 
         public static class Debuffs
@@ -93,6 +97,16 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class SummonerSearingLockoutFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerSearingLockoutFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == SMN.SearingLight && IsActionOffCooldown(SMN.SearingLight) && HasEffectAny(SMN.Buffs.SearingLight) && FindEffectAny(SMN.Buffs.SearingLight)?.RemainingTime > 3 ? SCH.Physick : actionID;
+        }
+    }
+
     internal class SummonerDemiCombo : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.SummonerDemiCombo;
@@ -102,10 +116,32 @@ namespace XIVComboExpandedestPlugin.Combos
             // Replace demi summons with enkindle
             if (actionID == SMN.SummonBahamut || actionID == SMN.SummonPhoenix || actionID == SMN.DreadwyrmTrance || actionID == SMN.Aethercharge)
             {
-                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse && level >= SMN.Levels.SummonBahamut)
+                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse && CanUseAction(SMN.EnkindleBahamut) && IsActionOffCooldown(SMN.EnkindleBahamut))
                     return SMN.EnkindleBahamut;
-                if (OriginalHook(SMN.Ruin1) == SMN.FountainOfFire)
+                if (OriginalHook(SMN.Ruin1) == SMN.FountainOfFire && IsActionOffCooldown(SMN.EnkindlePhoenix))
                     return SMN.EnkindlePhoenix;
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class SummonerDemiFlowFeature : CustomCombo
+    {
+        private static readonly uint[] UsedIDs = { SMN.SummonBahamut, SMN.SummonPhoenix, SMN.DreadwyrmTrance, SMN.Aethercharge };
+
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerDemiFlowFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (UsedIDs.Contains(actionID))
+            {
+                if (OriginalHook(SMN.AstralFlow) != SMN.AstralFlow)
+                {
+                    if (OriginalHook(SMN.AstralFlow) == SMN.Deathflare || OriginalHook(SMN.AstralFlow) == SMN.Rekindle)
+                        return IsActionOffCooldown(OriginalHook(SMN.AstralFlow)) ? OriginalHook(SMN.AstralFlow) : actionID;
+                    return OriginalHook(SMN.AstralFlow);
+                }
             }
 
             return actionID;
@@ -121,11 +157,11 @@ namespace XIVComboExpandedestPlugin.Combos
             // Replace demi summons with enkindle
             if (actionID == SMN.Gemshine || actionID == SMN.PreciousBrilliance)
             {
-                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse && level >= SMN.Levels.SummonBahamut)
+                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse)
                 {
-                    if (IsEnabled(CustomComboPreset.SummonerShinyFlowCombo) && !IsActionOffCooldown(SMN.EnkindleBahamut))
+                    if (IsEnabled(CustomComboPreset.SummonerShinyFlowCombo) && (!IsActionOffCooldown(SMN.EnkindleBahamut) || !CanUseAction(SMN.EnkindleBahamut)) && CanUseAction(OriginalHook(SMN.AstralFlow)))
                         return OriginalHook(SMN.AstralFlow);
-                    return SMN.EnkindleBahamut;
+                    if (CanUseAction(SMN.EnkindleBahamut)) return SMN.EnkindleBahamut;
                 }
 
                 if (OriginalHook(SMN.Ruin1) == SMN.FountainOfFire)
@@ -149,7 +185,7 @@ namespace XIVComboExpandedestPlugin.Combos
             // Replace demi summons with enkindle
             if ((actionID == SMN.Gemshine || actionID == SMN.PreciousBrilliance) && !IsEnabled(CustomComboPreset.SummonerShinyDemiCombo))
             {
-                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse && level >= SMN.Levels.SummonBahamut)
+                if (OriginalHook(SMN.Ruin1) == SMN.AstralImpulse && CanUseAction(OriginalHook(SMN.AstralFlow)))
                     return OriginalHook(SMN.AstralFlow);
                 if (OriginalHook(SMN.Ruin1) == SMN.FountainOfFire)
                     return OriginalHook(SMN.AstralFlow);
@@ -169,7 +205,7 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 var gauge = GetJobGauge<SMNGauge>();
 
-                if (!gauge.HasAetherflowStacks && IsEnabled(CustomComboPreset.SummonerLucidReminderFeature) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(SMN.EnergyDrain) && LocalPlayer?.CurrentMp <= 9000) return All.LucidDreaming;
+                if (!gauge.HasAetherflowStacks && IsEnabled(CustomComboPreset.SummonerLucidReminderFeature) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(SMN.EnergyDrain) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming)) return All.LucidDreaming;
 
                 if (!gauge.HasAetherflowStacks)
                     return SMN.EnergyDrain;
@@ -189,7 +225,7 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 var gauge = GetJobGauge<SMNGauge>();
 
-                if (!gauge.HasAetherflowStacks && IsEnabled(CustomComboPreset.SummonerLucidReminderFeature) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(SMN.EnergySyphon) && LocalPlayer?.CurrentMp <= 9000) return All.LucidDreaming;
+                if (!gauge.HasAetherflowStacks && IsEnabled(CustomComboPreset.SummonerLucidReminderFeature) && IsActionOffCooldown(All.LucidDreaming) && !IsActionOffCooldown(SMN.EnergySyphon) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming)) return All.LucidDreaming;
 
                 if (!gauge.HasAetherflowStacks)
                     if (level >= SMN.Levels.EnergySyphon)
@@ -200,10 +236,20 @@ namespace XIVComboExpandedestPlugin.Combos
                 if (level >= SMN.Levels.Painflare)
                     return SMN.Painflare;
 
-                return SMN.Fester;
+                return SMN.EnergySyphon;
             }
 
             return actionID;
+        }
+    }
+
+    internal class SummonerEStoED : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerEStoED;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == SMN.EnergySyphon && IsEnabled(CustomComboPreset.SummonerEStoED) && level < SMN.Levels.EnergySyphon ? SMN.EnergyDrain : actionID;
         }
     }
 
@@ -239,6 +285,29 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class SummonerFlowingRuinFeature : CustomCombo
+    {
+        private static readonly uint[] UsedIDs = { SMN.Ruin1, SMN.Ruin2, SMN.Ruin3 };
+
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerFlowingRuinFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (UsedIDs.Contains(actionID) || (actionID == SMN.Gemshine && IsEnabled(CustomComboPreset.SummonerRuiningShineFeature)))
+            {
+                if (actionID != SMN.Gemshine && IsEnabled(CustomComboPreset.SummonerRuiningShineFeature)) return actionID;
+                if (OriginalHook(SMN.AstralFlow) != SMN.AstralFlow && CanUseAction(OriginalHook(SMN.AstralFlow)))
+                {
+                    if (OriginalHook(SMN.AstralFlow) == SMN.Deathflare || OriginalHook(SMN.AstralFlow) == SMN.Rekindle)
+                        return IsActionOffCooldown(OriginalHook(SMN.AstralFlow)) ? OriginalHook(SMN.AstralFlow) : actionID;
+                    return OriginalHook(SMN.AstralFlow);
+                }
+            }
+
+            return actionID;
+        }
+    }
+
     internal class SummonerShinyRuinFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.SummonerShinyRuinFeature;
@@ -247,6 +316,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == SMN.Ruin1 || actionID == SMN.Ruin2 || actionID == SMN.Ruin3)
             {
+                if (IsEnabled(CustomComboPreset.SummonerRuiningShineFeature)) return actionID;
                 if (IsEnabled(CustomComboPreset.SummonerMountainBusterFeature) && OriginalHook(SMN.AstralFlow) == SMN.MountainBuster)
                     return OriginalHook(SMN.AstralFlow);
                 if (OriginalHook(SMN.Gemshine) != SMN.Gemshine)
@@ -263,10 +333,51 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == SMN.Ruin1 || actionID == SMN.Ruin2 || actionID == SMN.Ruin3)
+            if (actionID == SMN.Ruin1 || actionID == SMN.Ruin2 || actionID == SMN.Ruin3 || (actionID == SMN.Gemshine && IsEnabled(CustomComboPreset.SummonerRuiningShineFeature)))
             {
+                if (actionID != SMN.Gemshine && IsEnabled(CustomComboPreset.SummonerRuiningShineFeature)) return actionID;
                 if (HasEffect(SMN.Buffs.FurtherRuin) && (OriginalHook(SMN.Ruin1) != SMN.AstralImpulse && OriginalHook(SMN.Ruin1) != SMN.FountainOfFire))
                     return SMN.Ruin4;
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class SummonerRuiningShineFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerRuiningShineFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == SMN.Gemshine)
+            {
+                var gauge = GetJobGauge<SMNGauge>();
+                if (gauge.AttunmentTimerRemaining == 0)
+                    return OriginalHook(SMN.Ruin3);
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class SummonerFlowingOutburstFeature : CustomCombo
+    {
+        private static readonly uint[] UsedIDs = { SMN.Outburst, SMN.TriDisaster };
+
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerFlowingOutburstFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (UsedIDs.Contains(actionID) || (actionID == SMN.PreciousBrilliance && IsEnabled(CustomComboPreset.SummonerOutburstOfBrillianceFeature)))
+            {
+                if (actionID != SMN.PreciousBrilliance && IsEnabled(CustomComboPreset.SummonerOutburstOfBrillianceFeature)) return actionID;
+                if (OriginalHook(SMN.AstralFlow) != SMN.AstralFlow && CanUseAction(OriginalHook(SMN.AstralFlow)))
+                {
+                    if (OriginalHook(SMN.AstralFlow) == SMN.Deathflare || OriginalHook(SMN.AstralFlow) == SMN.Rekindle)
+                        return IsActionOffCooldown(OriginalHook(SMN.AstralFlow)) ? OriginalHook(SMN.AstralFlow) : actionID;
+                    return OriginalHook(SMN.AstralFlow);
+                }
             }
 
             return actionID;
@@ -279,8 +390,9 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (actionID == SMN.Outburst || actionID == SMN.TriDisaster)
+            if (actionID == SMN.Outburst || actionID == SMN.TriDisaster || (actionID == SMN.PreciousBrilliance && IsEnabled(CustomComboPreset.SummonerOutburstOfBrillianceFeature)))
             {
+                if (actionID != SMN.PreciousBrilliance && IsEnabled(CustomComboPreset.SummonerOutburstOfBrillianceFeature)) return actionID;
                 if (HasEffect(SMN.Buffs.FurtherRuin) && (OriginalHook(SMN.Ruin1) != SMN.AstralImpulse && OriginalHook(SMN.Ruin1) != SMN.FountainOfFire))
                     return SMN.Ruin4;
             }
@@ -297,36 +409,11 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == SMN.Outburst || actionID == SMN.TriDisaster)
             {
+                if (actionID != SMN.PreciousBrilliance && IsEnabled(CustomComboPreset.SummonerOutburstOfBrillianceFeature)) return actionID;
                 if (IsEnabled(CustomComboPreset.SummonerMountainBusterFeature) && OriginalHook(SMN.AstralFlow) == SMN.MountainBuster)
                     return OriginalHook(SMN.AstralFlow);
                 if (OriginalHook(SMN.PreciousBrilliance) != SMN.PreciousBrilliance)
                     return OriginalHook(SMN.PreciousBrilliance);
-            }
-
-            return actionID;
-        }
-    }
-
-    internal class SummonerGemstoneRuin : CustomCombo
-    {
-        protected override CustomComboPreset Preset => CustomComboPreset.SummonerGemstoneRuin;
-
-        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
-        {
-            if (actionID == SMN.Gemshine)
-            {
-                var gauge = GetJobGauge<SMNGauge>();
-
-                if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned)
-                    return OriginalHook(SMN.Ruin1);
-            }
-
-            if (actionID == SMN.PreciousBrilliance)
-            {
-                var gauge = GetJobGauge<SMNGauge>();
-
-                if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned)
-                    return OriginalHook(SMN.Outburst);
             }
 
             return actionID;
@@ -339,7 +426,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
 }

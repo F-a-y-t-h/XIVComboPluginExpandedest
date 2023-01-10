@@ -28,7 +28,14 @@ namespace XIVComboExpandedestPlugin.Combos
             Recitation = 16542,
             EmergencyTactics = 3586,
             DeploymentTactics = 3585,
-            Ruin2 = 17870;
+            Ruin = 17869,
+            Ruin2 = 17870,
+            Broil = 3584,
+            Broil2 = 7435,
+            Broil3 = 16541,
+            Broil4 = 25865,
+            Adloquium = 185,
+            Physick = 190;
 
         public static class Buffs
         {
@@ -39,14 +46,26 @@ namespace XIVComboExpandedestPlugin.Combos
 
         public static class Debuffs
         {
-            public const ushort Placeholder = 0;
+            public const ushort
+                ChainStratagem = 1221;
         }
 
         public static class Levels
         {
             public const byte
+                Adloquium = 30,
                 ChainStratagem = 66,
                 Recitation = 74;
+        }
+    }
+
+    internal class ScholarAdloPhysickSyncFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.ScholarAdloPhysickSyncFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == SCH.Adloquium && level < SCH.Levels.Adloquium ? SCH.Physick : actionID;
         }
     }
 
@@ -70,7 +89,34 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return IsActionOffCooldown(SCH.ChainStratagem) && GetCooldown(SCH.Ruin2).CooldownRemaining >= 0.5 && level >= SCH.Levels.ChainStratagem ? SCH.ChainStratagem : actionID;
+            return actionID == SCH.ChainStratagem && IsActionOffCooldown(SCH.ChainStratagem) && GetCooldown(SCH.Ruin2).CooldownRemaining >= 0.5 && level >= SCH.Levels.ChainStratagem
+                && !(IsEnabled(CustomComboPreset.ScholarChainLockoutFeature) && TargetHasEffectAny(SCH.Debuffs.ChainStratagem) && FindTargetEffectAny(SCH.Debuffs.ChainStratagem)?.RemainingTime > 3) ? SCH.ChainStratagem : actionID;
+        }
+    }
+
+    internal class ScholarChainLockoutFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.ScholarChainLockoutFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == SCH.ChainStratagem && IsActionOffCooldown(SCH.ChainStratagem) && TargetHasEffectAny(SCH.Debuffs.ChainStratagem) && FindTargetEffectAny(SCH.Debuffs.ChainStratagem)?.RemainingTime > 3 ? SMN.Physick : actionID;
+        }
+    }
+
+    internal class ScholarRuin2MovementFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.ScholarRuin2MovementFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == SCH.Ruin || actionID == SCH.Broil || actionID == SCH.Broil2 || actionID == SCH.Broil3 || actionID == SCH.Broil4)
+            {
+                if (IsMoving())
+                    return SCH.Ruin2;
+            }
+
+            return actionID;
         }
     }
 
@@ -133,7 +179,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
 }

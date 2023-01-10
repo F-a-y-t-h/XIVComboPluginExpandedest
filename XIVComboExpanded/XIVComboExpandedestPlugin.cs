@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge;
@@ -9,6 +10,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Plugin;
 
 namespace XIVComboExpandedestPlugin
@@ -55,6 +57,9 @@ namespace XIVComboExpandedestPlugin
                 ShowInHelp = true,
             });
         }
+
+        [PluginService]
+        public static Framework Framework { get; private set; } = null!;
 
         /// <inheritdoc/>
         public string Name => "XIV Combo Expandedest";

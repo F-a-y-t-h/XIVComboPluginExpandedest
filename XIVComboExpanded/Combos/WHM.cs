@@ -29,7 +29,8 @@ namespace XIVComboExpandedestPlugin.Combos
 
         public static class Buffs
         {
-            public const ushort Placeholder = 0;
+            public const ushort
+                Zagadoo = 155;
         }
 
         public static class Debuffs
@@ -90,7 +91,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             var gauge = GetJobGauge<WHMGauge>();
 
-            if (gauge.BloodLily == 3)
+            if (gauge.BloodLily == 3 && CurrentTarget is not null)
                 return WHM.AfflatusMisery;
 
             return actionID;
@@ -119,7 +120,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
 
@@ -134,6 +135,9 @@ namespace XIVComboExpandedestPlugin.Combos
                 var gauge = GetJobGauge<WHMGauge>();
                 if (IsEnabled(CustomComboPreset.WhiteMageSolaceMiseryFeature) && gauge.BloodLily == 3)
                     return WHM.AfflatusMisery;
+                // Unholy line of cursed code that must NEVER be mentioned, under any circumstances
+                // Feel free to remove it in any forks for absolutely no consequence, I assure you
+                if (HasEffect(WHM.Buffs.Zagadoo)) return actionID;
                 if (level >= WHM.Levels.AfflatusSolace && gauge.Lily > 0)
                     return WHM.AfflatusSolace;
             }
@@ -141,7 +145,7 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == WHM.Medica)
             {
                 var gauge = GetJobGauge<WHMGauge>();
-                if (IsEnabled(CustomComboPreset.WhiteMageRaptureMiseryFeature) && gauge.BloodLily == 3 && level >= WHM.Levels.AfflatusRapture)
+                if (IsEnabled(CustomComboPreset.WhiteMageRaptureMiseryFeature) && gauge.BloodLily == 3 && level >= WHM.Levels.AfflatusRapture && CurrentTarget is not null)
                     return WHM.AfflatusMisery;
                 if (level >= WHM.Levels.AfflatusRapture && gauge.Lily > 0)
                     return WHM.AfflatusRapture;

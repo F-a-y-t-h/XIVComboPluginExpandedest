@@ -15,7 +15,7 @@ namespace XIVComboExpandedestPlugin.Combos
             SplitShot = 2866,
             HeatedSplitShot = 7411,
             SlugShot = 2868,
-            HeatedSlugshot = 7412,
+            HeatedSlugShot = 7412,
             // Charges
             GaussRound = 2874,
             Ricochet = 2890,
@@ -30,17 +30,20 @@ namespace XIVComboExpandedestPlugin.Combos
             QueenOverdrive = 16502,
             // Other
             Hypercharge = 17209,
+            Reassemble = 2876,
             Wildfire = 2878,
             BarrelStabilizer = 7414,
             HeatBlast = 7410,
             HotShot = 2872,
             Drill = 16498,
+            Bioblaster = 16499,
             AirAnchor = 16500,
             Chainsaw = 25788;
 
         public static class Buffs
         {
-            public const ushort Placeholder = 0;
+            public const ushort
+                Reassemble = 851;
         }
 
         public static class Debuffs
@@ -68,7 +71,28 @@ namespace XIVComboExpandedestPlugin.Combos
                 ChargedActionMastery = 74,
                 AirAnchor = 76,
                 QueenOverdrive = 80,
+                EnhancedReassemble = 84,
                 Chainsaw = 90;
+        }
+    }
+
+    internal class MachinistHypercomboFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.MachinistHypercomboFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            var gauge = GetJobGauge<MCHGauge>();
+            if (IsEnabled(CustomComboPreset.MachinistHypercomboOption))
+            {
+                if (gauge.IsOverheated && ((lastComboMove == MCH.SplitShot && (actionID == MCH.SlugShot || actionID == MCH.HeatedSlugShot)) ||
+                    (lastComboMove == MCH.SlugShot && (actionID == MCH.CleanShot || actionID == MCH.HeatedCleanShot)) ||
+                    (lastComboMove != MCH.SlugShot && lastComboMove != MCH.SplitShot && (actionID == MCH.SplitShot || actionID == MCH.HeatedSplitShot))))
+                    return MCH.HeatBlast;
+                return actionID;
+            }
+
+            return gauge.IsOverheated && CanUseAction(MCH.HeatBlast) ? MCH.HeatBlast : actionID;
         }
     }
 
@@ -80,15 +104,12 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == MCH.CleanShot || actionID == MCH.HeatedCleanShot)
             {
-                var gauge = GetJobGauge<MCHGauge>();
-                if (IsEnabled(CustomComboPreset.MachinistHypercomboFeature) && gauge.IsOverheated && level >= MCH.Levels.HeatBlast)
-                    return MCH.HeatBlast;
                 if (comboTime > 0)
                 {
-                    if (lastComboMove == MCH.SplitShot && level >= MCH.Levels.SlugShot)
+                    if (lastComboMove == MCH.SplitShot && CanUseAction(OriginalHook(MCH.SlugShot)))
                         return OriginalHook(MCH.SlugShot);
 
-                    if (lastComboMove == MCH.SlugShot && level >= MCH.Levels.CleanShot)
+                    if (lastComboMove == MCH.SlugShot && CanUseAction(OriginalHook(MCH.CleanShot)))
                         return OriginalHook(MCH.CleanShot);
                 }
 
@@ -107,7 +128,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if ((actionID == MCH.GaussRound || actionID == MCH.Ricochet) && (!IsEnabled(CustomComboPreset.MachinistGaussRoundRicochetFeatureOption) || GetJobGauge<MCHGauge>().IsOverheated))
             {
-                if (level >= MCH.Levels.Ricochet)
+                if (CanUseAction(MCH.Ricochet))
                     return CalcBestAction(actionID, MCH.GaussRound, MCH.Ricochet);
 
                 return MCH.GaussRound;
@@ -123,7 +144,27 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return ((IsActionOffCooldown(MCH.Wildfire) && LocalPlayer?.TargetObject is not null) || (OriginalHook(MCH.Wildfire) != MCH.Wildfire && !IsActionOffCooldown(MCH.Hypercharge))) && level >= MCH.Levels.Wildfire ? OriginalHook(MCH.Wildfire) : actionID;
+            return ((IsActionOffCooldown(MCH.Wildfire) && CurrentTarget is not null) || (OriginalHook(MCH.Wildfire) != MCH.Wildfire && !IsActionOffCooldown(MCH.Hypercharge))) && CanUseAction(MCH.Wildfire) && actionID == MCH.Hypercharge ? OriginalHook(MCH.Wildfire) : actionID;
+        }
+    }
+
+    internal class MachinistReassembleFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.MachinistReassembleFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            var currentAction = !CanUseAction(MCH.Chainsaw) && IsEnabled(CustomComboPreset.MachinistReassembleOption) ? MCH.Drill : MCH.Chainsaw;
+
+            if (IsEnabled(CustomComboPreset.MachinistChainsawFeature))
+            {
+                currentAction = MachinistChainsawFeature.ChooseChainsawAction(level, this.FilteredLastComboMove);
+            }
+
+            var cooldownElapsed = GetCooldown(currentAction).CooldownElapsed;
+            // This delay makes sure you don't fatfinger Reassemble twice if you are using it after it gets charges and are smashing the button.
+            bool delay = !IsActionOffCooldown(currentAction) && cooldownElapsed < 1 && level >= MCH.Levels.EnhancedReassemble && GetCooldown(MCH.Reassemble).CooldownRemaining < 55 && !IsActionOffCooldown(MCH.Reassemble);
+            return actionID == MCH.Reassemble && (HasEffect(MCH.Buffs.Reassemble) || delay) && CanUseAction(currentAction) ? currentAction : actionID;
         }
     }
 
@@ -146,13 +187,13 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == MCH.HeatBlast || actionID == MCH.AutoCrossbow)
             {
-                if (IsEnabled(CustomComboPreset.MachinistHyperfireFeature) && IsActionOffCooldown(MCH.Wildfire) && level >= MCH.Levels.Wildfire)
+                if (IsEnabled(CustomComboPreset.MachinistHyperfireFeature) && IsActionOffCooldown(MCH.Wildfire) && CanUseAction(MCH.Wildfire))
                     return MCH.Wildfire;
                 var gauge = GetJobGauge<MCHGauge>();
-                if (!gauge.IsOverheated && level >= MCH.Levels.Hypercharge)
+                if (!gauge.IsOverheated && CanUseAction(MCH.Hypercharge))
                     return MCH.Hypercharge;
 
-                if (level < MCH.Levels.AutoCrossbow)
+                if (!CanUseAction(MCH.AutoCrossbow))
                     return MCH.HeatBlast;
             }
 
@@ -169,7 +210,7 @@ namespace XIVComboExpandedestPlugin.Combos
             if (actionID == MCH.SpreadShot || actionID == MCH.Scattergun)
             {
                 var gauge = GetJobGauge<MCHGauge>();
-                if (gauge.IsOverheated && level >= MCH.Levels.AutoCrossbow)
+                if (gauge.IsOverheated && CanUseAction(MCH.AutoCrossbow))
                     return MCH.AutoCrossbow;
 
                 return OriginalHook(MCH.SpreadShot);
@@ -205,16 +246,96 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == MCH.Drill || actionID == MCH.HotShot || actionID == MCH.AirAnchor)
             {
-                if (level >= MCH.Levels.Chainsaw)
-                    return CalcBestAction(actionID, MCH.Chainsaw, MCH.AirAnchor, MCH.Drill);
+                uint[] aoes = { MCH.SpreadShot, MCH.Scattergun };
+                uint drillID = MCH.Drill;
+                uint anchorID = MCH.AirAnchor;
+                if (IsActionOffCooldown(MCH.Drill) && IsEnabled(CustomComboPreset.MachinistBioDrillFeature))
+                    if (Array.Exists(aoes, element => element == this.FilteredLastComboMove) && !HasEffect(MCH.Buffs.Reassemble))
+                        drillID = anchorID = MCH.Bioblaster;
+                if (CanUseAction(MCH.Chainsaw))
+                    return CalcBestAction(actionID, MCH.Chainsaw, anchorID, drillID);
 
-                if (level >= MCH.Levels.AirAnchor)
-                    return CalcBestAction(actionID, MCH.AirAnchor, MCH.Drill);
+                if (CanUseAction(MCH.AirAnchor))
+                    return CalcBestAction(actionID, anchorID, drillID);
 
-                if (level >= MCH.Levels.Drill)
-                    return CalcBestAction(actionID, MCH.Drill, MCH.HotShot);
+                if (CanUseAction(MCH.Drill))
+                    return CalcBestAction(actionID, drillID, MCH.HotShot);
 
                 return MCH.HotShot;
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class MachinistChainsawFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.MachinistChainsawFeature;
+
+        public static uint ChooseChainsawAction(byte level, uint lastComboMove)
+        {
+            uint[] aoes = { MCH.SpreadShot, MCH.Scattergun };
+            if (level >= MCH.Levels.Chainsaw)
+            {
+                if (IsActionOffCooldown(MCH.Chainsaw))
+                    return MCH.Chainsaw;
+                if (IsActionOffCooldown(MCH.Drill) && IsEnabled(CustomComboPreset.MachinistBioDrillFeature))
+                    if (Array.Exists(aoes, element => element == lastComboMove) && !HasEffect(MCH.Buffs.Reassemble))
+                        return MCH.Bioblaster;
+                if (IsActionOffCooldown(MCH.AirAnchor))
+                    return MCH.AirAnchor;
+                if (IsActionOffCooldown(MCH.Drill))
+                    return MCH.Drill;
+                return MCH.Chainsaw;
+            }
+
+            if (level >= MCH.Levels.AirAnchor)
+            {
+                if (IsActionOffCooldown(MCH.Drill) && IsEnabled(CustomComboPreset.MachinistBioDrillFeature))
+                    if (Array.Exists(aoes, element => element == lastComboMove) && !HasEffect(MCH.Buffs.Reassemble))
+                        return MCH.Bioblaster;
+                if (IsActionOffCooldown(MCH.AirAnchor))
+                    return MCH.AirAnchor;
+                if (IsActionOffCooldown(MCH.Drill))
+                    return MCH.Drill;
+                return MCH.AirAnchor;
+            }
+
+            if (CanUseAction(MCH.Drill))
+            {
+                if (IsActionOffCooldown(MCH.Drill) && IsEnabled(CustomComboPreset.MachinistBioDrillFeature) && CanUseAction(MCH.Bioblaster))
+                    if (Array.Exists(aoes, element => element == lastComboMove) && !HasEffect(MCH.Buffs.Reassemble))
+                        return MCH.Bioblaster;
+                if (IsActionOffCooldown(MCH.HotShot))
+                    return MCH.HotShot;
+                return MCH.Drill;
+            }
+
+            return MCH.HotShot;
+        }
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == MCH.Chainsaw)
+            {
+                return ChooseChainsawAction(level, this.FilteredLastComboMove);
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class MachinistBioDrillFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.MachinistBioDrillFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == MCH.Drill)
+            {
+                uint[] aoes = { MCH.SpreadShot, MCH.Scattergun };
+                if (Array.Exists(aoes, element => element == this.FilteredLastComboMove) && !HasEffect(MCH.Buffs.Reassemble))
+                    return MCH.Bioblaster;
             }
 
             return actionID;

@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using XIVComboExpandedestPlugin.Attributes;
 
 namespace XIVComboExpandedestPlugin.Combos
@@ -61,6 +62,39 @@ namespace XIVComboExpandedestPlugin.Combos
         /// </summary>
         protected byte JobID { get; }
 
+        protected uint FilteredLastComboMove { get; set; }
+
+        protected uint[] FilteredLastComboMoves { get; set; } = new uint[]
+        {
+            BRD.EmpyrealArrow,
+            BRD.RainOfDeath,
+            BRD.ApexArrow,
+            BRD.BlastArrow,
+            BRD.RadiantFinale,
+            PLD.HolyCircle,
+            PLD.Confiteor,
+            PLD.BladeOfFaith,
+            PLD.BladeOfTruth,
+            PLD.BladeOfValor,
+            DRG.FangAndClaw,
+            DRG.WheelingThrust,
+            RDM.Moulinet,
+            RDM.Manafication,
+            RDM.Verholy,
+            RDM.Verflare,
+            RDM.Scorch,
+            RDM.Resolution,
+            RDM.Impact,
+            RDM.Scatter,
+            3545, // Elixir Field
+            25882, // Flint Strike
+            3543, // Tornado Kick
+            25768, // Rising Phoenix
+            25769, // Phantom Rush
+            25765, // Celestial Revolution (AKA Monk Bunny)
+            0,
+        };
+
         /// <summary>
         /// Gets the action IDs associated with this combo.
         /// </summary>
@@ -79,6 +113,13 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             newActionID = 0;
 
+            if (!this.FilteredLastComboMoves.Contains(lastComboActionID))
+                this.FilteredLastComboMove = lastComboActionID;
+
+            // Reset filtered last combo move if out of combat.
+            if (LocalPlayer is not null && !HasCondition(ConditionFlag.InCombat))
+                this.FilteredLastComboMove = 0;
+
             if (!IsEnabled(this.Preset))
                 return false;
 
@@ -94,6 +135,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 return false;
 
             newActionID = resultingActionID;
+
             return true;
         }
 
@@ -178,11 +220,7 @@ namespace XIVComboExpandedestPlugin.Combos
         /// Gets bool determining if player is moving.
         /// </summary>
         /// <returns>A bool value of whether the player is moving or not.</returns>
-        protected static unsafe bool IsMoving()
-        {
-            var agentMap = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentMap.Instance();
-            return agentMap != null && agentMap->IsPlayerMoving > 0 ? true : false;
-        }
+        protected static unsafe bool IsMoving() => AgentMap.Instance() != null && AgentMap.Instance()->IsPlayerMoving > 0 ? true : false;
 
         /// <summary>
         /// Determine if the given preset is enabled.
@@ -310,16 +348,16 @@ namespace XIVComboExpandedestPlugin.Combos
         /// <returns>Double representing the distance from the target.</returns>
         protected static double GetTargetDistance()
         {
-            if (CurrentTarget is null)
+            if (CurrentTarget is null || LocalPlayer is null)
                 return 0;
 
-            if (CurrentTarget is not BattleChara chara)
+            if (CurrentTarget is not BattleChara chara || CurrentTarget.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc)
                 return 0;
 
-            double distanceX = chara.YalmDistanceX;
-            double distanceY = chara.YalmDistanceZ;
+            var position = new Vector2(chara.Position.X, chara.Position.Z);
+            var selfPosition = new Vector2(LocalPlayer.Position.X, LocalPlayer.Position.Z);
 
-            return Math.Sqrt(Math.Pow(distanceX, 2) + Math.Pow(distanceY, 2));
+            return (Vector2.Distance(position, selfPosition) - chara.HitboxRadius) - LocalPlayer.HitboxRadius;
         }
 
         /// <summary>
@@ -333,7 +371,7 @@ namespace XIVComboExpandedestPlugin.Combos
             if (distance == 0)
                 return true;
 
-            if (distance > 3)
+            if (distance > 3 + Service.Configuration.MeleeOffset)
                 return false;
 
             return true;

@@ -24,7 +24,8 @@ namespace XIVComboExpandedestPlugin.Combos
             FatedCircle = 16163,
             Bloodfest = 16164,
             DoubleDown = 25760,
-            Hypervelocity = 25759;
+            Hypervelocity = 25759,
+            LightningShot = 16143;
 
         public static class Buffs
         {
@@ -68,6 +69,12 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == GNB.SolidBarrel)
             {
+                if (IsEnabled(CustomComboPreset.GunbreakerSolidShotFeature))
+                {
+                    if (CanUseAction(GNB.LightningShot) && !InMeleeRange())
+                        return GNB.LightningShot;
+                }
+
                 if (comboTime > 0)
                 {
                     var gauge = GetJobGauge<GNBGauge>();
@@ -157,7 +164,7 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (level >= GNB.Levels.BowShock && level >= GNB.Levels.SonicBreak)
                 {
-                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak))
+                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak) && IsEnabled(CustomComboPreset.GunbreakerBowShockSonicBreakOption))
                         return GNB.SonicBreak;
                     return CalcBestAction(actionID, GNB.BowShock, GNB.SonicBreak);
                 }
@@ -206,6 +213,22 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class GunbreakerBurstStrikeToFatedCircleFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.GunbreakerBurstStrikeToFatedCircleFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == GNB.BurstStrike)
+            {
+                if (level >= GNB.Levels.FatedCircle && (lastComboMove == GNB.DemonSlice || lastComboMove == GNB.DemonSlaughter))
+                    return GNB.FatedCircle;
+            }
+
+            return actionID;
+        }
+    }
+
     internal class GunbreakerDemonSlaughterCombo : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.GunbreakerDemonSlaughterCombo;
@@ -246,7 +269,7 @@ namespace XIVComboExpandedestPlugin.Combos
             var gauge = GetJobGauge<GNBGauge>();
             if (gauge.Ammo >= 2 && HasEffect(GNB.Buffs.NoMercy))
             {
-                if (GetCooldown(GNB.SolidBarrel).CooldownRemaining >= 0.5 && IsActionOffCooldown(GNB.BowShock) && IsEnabled(CustomComboPreset.GunbreakerNoMercyFeature))
+                if (GetCooldown(GNB.SolidBarrel).CooldownRemaining >= 0.5 && !IsEnabled(CustomComboPreset.GunbreakerBowShockSonicBreakOption) && IsActionOffCooldown(GNB.BowShock) && IsEnabled(CustomComboPreset.GunbreakerNoMercyFeature))
                     return GNB.BowShock;
                 if (IsActionOffCooldown(GNB.DoubleDown) && level >= GNB.Levels.DoubleDown)
                     return GNB.DoubleDown;
@@ -266,7 +289,7 @@ namespace XIVComboExpandedestPlugin.Combos
             {
                 if (HasEffect(GNB.Buffs.NoMercy))
                 {
-                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak))
+                    if (GetCooldown(GNB.SolidBarrel).CooldownRemaining < 0.5 && IsActionOffCooldown(GNB.SonicBreak) && IsEnabled(CustomComboPreset.GunbreakerBowShockSonicBreakOption))
                         return GNB.SonicBreak;
                     var bowCd = GetCooldown(GNB.BowShock);
                     var sonicCd = GetCooldown(GNB.SonicBreak);

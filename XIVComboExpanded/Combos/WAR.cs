@@ -26,7 +26,10 @@ namespace XIVComboExpandedestPlugin.Combos
             ChaoticCyclone = 16463,
             NascentFlash = 16464,
             InnerChaos = 16465,
-            PrimalRend = 25753;
+            PrimalRend = 25753,
+            Tomahawk = 46,
+            Orogeny = 25752,
+            Upheaval = 7387;
 
         public static class Buffs
         {
@@ -66,14 +69,15 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == WAR.StormsPath)
             {
-                if (IsEnabled(CustomComboPreset.WarriorInnerReleaseFeature) && HasEffect(WAR.Buffs.InnerRelease))
+                if (IsEnabled(CustomComboPreset.WarriorStormsPathahawkFeature))
                 {
-                    return OriginalHook(WAR.FellCleave);
+                    if (CanUseAction(WAR.Tomahawk) && !InMeleeRange())
+                        return WAR.Tomahawk;
                 }
 
                 if (comboTime > 0)
                 {
-                    if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim)
+                    if (lastComboMove == WAR.HeavySwing && CanUseAction(WAR.Maim))
                         return WAR.Maim;
 
                     if (lastComboMove == WAR.Maim && CanUseAction(WAR.StormsEye) && !HasEffect(WAR.Buffs.SurgingTempest))
@@ -100,21 +104,22 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == WAR.StormsEye)
             {
-                if (IsEnabled(CustomComboPreset.WarriorInnerReleaseFeature) && HasEffect(WAR.Buffs.InnerRelease))
+                if (IsEnabled(CustomComboPreset.WarriorStormsEyeahawkFeature))
                 {
-                    return OriginalHook(WAR.FellCleave);
+                    if (CanUseAction(WAR.Tomahawk) && !InMeleeRange())
+                        return WAR.Tomahawk;
                 }
 
                 if (comboTime > 0)
                 {
-                    if (lastComboMove == WAR.HeavySwing && level >= WAR.Levels.Maim)
-                        return WAR.Maim;
+                    if (lastComboMove == WAR.HeavySwing && CanUseAction(WAR.Maim))
+                        return IsEnabled(CustomComboPreset.WarriorStormsEyeHawkReplacementFeature) ? WAR.Tomahawk : WAR.Maim;
 
-                    if (lastComboMove == WAR.Maim && level >= WAR.Levels.StormsEye)
+                    if (lastComboMove == WAR.Maim && CanUseAction(WAR.StormsEye))
                         return WAR.StormsEye;
                 }
 
-                return WAR.HeavySwing;
+                return IsEnabled(CustomComboPreset.WarriorStormsEyeHawkReplacementFeature) ? WAR.Tomahawk : WAR.HeavySwing;
             }
 
             return actionID;
@@ -129,7 +134,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == WAR.MythrilTempest)
             {
-                if (HasEffect(WAR.Buffs.PrimalRendReady) && IsEnabled(CustomComboPreset.WarriorMythrilRendFeature))
+                if (CanUseAction(WAR.PrimalRend) && IsEnabled(CustomComboPreset.WarriorMythrilRendFeature))
                     return WAR.PrimalRend;
 
                 if (IsEnabled(CustomComboPreset.WarriorInnerReleaseFeature) && HasEffect(WAR.Buffs.InnerRelease))
@@ -139,7 +144,7 @@ namespace XIVComboExpandedestPlugin.Combos
 
                 if (comboTime > 0)
                 {
-                    if (lastComboMove == WAR.Overpower && level >= WAR.Levels.MythrilTempest)
+                    if (lastComboMove == WAR.Overpower && CanUseAction(WAR.MythrilTempest))
                     {
                         var gauge = GetJobGauge<WARGauge>().BeastGauge;
                         if (IsEnabled(CustomComboPreset.WarriorGaugeOvercapFeature) && gauge >= 90 && level >= WAR.Levels.MythrilTempestTrait)
@@ -164,7 +169,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             if (actionID == WAR.Overpower)
             {
-                if (HasEffect(WAR.Buffs.PrimalRendReady) && IsEnabled(CustomComboPreset.WarriorMythrilRendFeature))
+                if (CanUseAction(WAR.PrimalRend) && IsEnabled(CustomComboPreset.WarriorMythrilRendFeature))
                     return WAR.PrimalRend;
 
                 if (IsEnabled(CustomComboPreset.WarriorInnerReleaseFeature) && HasEffect(WAR.Buffs.InnerRelease))
@@ -175,7 +180,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 var gauge = GetJobGauge<WARGauge>().BeastGauge;
                 if (comboTime > 0)
                 {
-                    if (lastComboMove == WAR.Overpower && level >= WAR.Levels.MythrilTempest)
+                    if (lastComboMove == WAR.Overpower && CanUseAction(WAR.MythrilTempest))
                     {
                         if (gauge >= 90 && level >= WAR.Levels.MythrilTempestTrait && IsEnabled(CustomComboPreset.WarriorGaugeOvercapFeature))
                         {
@@ -185,6 +190,8 @@ namespace XIVComboExpandedestPlugin.Combos
                         return WAR.MythrilTempest;
                     }
                 }
+
+                return WAR.Overpower;
             }
 
             return actionID;
@@ -214,8 +221,40 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (HasEffect(WAR.Buffs.PrimalRendReady))
+            if (CanUseAction(WAR.PrimalRend))
                 return WAR.PrimalRend;
+
+            return actionID;
+        }
+    }
+
+    internal class WarriorFellCleaveToDecimateFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.WarriorFellCleaveToDecimateFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == WAR.FellCleave || actionID == WAR.InnerBeast)
+            {
+                if (HasEffect(WAR.Buffs.NascentChaos) && level < WAR.Levels.InnerChaos)
+                    return OriginalHook(WAR.Decimate);
+
+                if (CanUseAction(OriginalHook(WAR.Decimate)) && (lastComboMove == WAR.MythrilTempest || lastComboMove == WAR.Overpower))
+                    return OriginalHook(WAR.Decimate);
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class WarriorUporgyFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.WarriorUporgyFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == WAR.Upheaval && CanUseAction(WAR.Orogeny) && (lastComboMove == WAR.Overpower || lastComboMove == WAR.MythrilTempest))
+                return WAR.Orogeny;
 
             return actionID;
         }

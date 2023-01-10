@@ -1,4 +1,7 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using System;
+using System.Numerics;
+
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace XIVComboExpandedestPlugin.Combos
@@ -9,7 +12,10 @@ namespace XIVComboExpandedestPlugin.Combos
 
         public const uint
             Dosis = 24283,
+            Dosis2 = 24306,
+            Dosis3 = 24312,
             Diagnosis = 24284,
+            Prognosis = 24286,
             Holos = 24310,
             Ixochole = 24299,
             Taurochole = 24303,
@@ -51,16 +57,22 @@ namespace XIVComboExpandedestPlugin.Combos
             public const ushort
                 Dosis = 1,
                 Prognosis = 10,
+                Phlegma = 26,
                 Soteria = 35,
                 Druochole = 45,
                 Kerachole = 50,
+                Ixochole = 52,
                 Physis2 = 60,
                 Taurochole = 62,
-                Ixochole = 52,
+                Toxikon = 66,
+                Haima = 70,
                 Dosis2 = 72,
-                Holos = 76,
                 Rizomata = 74,
-                Dosis3 = 82;
+                Holos = 76,
+                Panhaima = 80,
+                Dosis3 = 82,
+                Krasis = 86,
+                Pneuma = 90;
         }
     }
 
@@ -81,26 +93,86 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
+    internal class SagePhlegmaMovementFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SagePhlegmaMovementFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == SGE.Dosis || actionID == SGE.Dosis2 || actionID == SGE.Dosis3)
+            {
+                if (IsMoving() && level >= SGE.Levels.Phlegma && !GetJobGauge<SGEGauge>().Eukrasia && GetTargetDistance() <= 6)
+                {
+                    if (GetCooldown(OriginalHook(SGE.Phlegma)).CooldownRemaining > 45)
+                            return actionID;
+
+                    return OriginalHook(SGE.Phlegma);
+                }
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class SageToxikonMovementFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SageToxikonMovementFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == SGE.Dosis || actionID == SGE.Dosis2 || actionID == SGE.Dosis3)
+            {
+                var gauge = GetJobGauge<SGEGauge>();
+                if (IsMoving() && gauge.Addersting > 0 && !gauge.Eukrasia && level >= SGE.Levels.Toxikon)
+                    return OriginalHook(SGE.Toxikon);
+            }
+
+            return actionID;
+        }
+    }
+
+    internal class SageExtremeButtonSaverFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SageExtremeButtonSaverFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (CurrentTarget is null)
+            {
+                if (actionID == SGE.Haima && CanUseAction(SGE.Panhaima))
+                    return SGE.Panhaima;
+                if (actionID == SGE.Taurochole && level >= SGE.Levels.Kerachole)
+                    return SGE.Kerachole;
+                if (actionID == SGE.Krasis)
+                    return OriginalHook(SGE.Physis);
+                if (actionID == SGE.Druochole && level >= SGE.Levels.Ixochole)
+                    return SGE.Ixochole;
+                if (actionID == SGE.Diagnosis && level >= SGE.Levels.Prognosis)
+                    return OriginalHook(SGE.Prognosis);
+            }
+
+            if (actionID == SGE.Krasis && level < SGE.Levels.Krasis)
+                return OriginalHook(SGE.Physis);
+
+            if (actionID == SGE.Pneuma && level < SGE.Levels.Pneuma)
+                return SGE.Holos;
+
+            return actionID;
+        }
+    }
+
     internal class SagePhlegmaToxicBalls : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.SagePhlegmaToxicBalls;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (LocalPlayer?.TargetObject is null && IsEnabled(CustomComboPreset.SagePhlegmaBalls))
+            if (CurrentTarget is null && IsEnabled(CustomComboPreset.SagePhlegmaBalls))
                 return OriginalHook(SGE.Dyskrasia);
 
             var gauge = GetJobGauge<SGEGauge>();
 
-            if (level >= SGE.Levels.Dosis3)
-                if (GetCooldown(SGE.Phlegmaga).CooldownRemaining > 45 && gauge.Addersting > 0)
-                    return OriginalHook(SGE.Toxikon);
-
-            if (level >= SGE.Levels.Dosis2)
-                if (GetCooldown(SGE.Phlegmara).CooldownRemaining > 45 && gauge.Addersting > 0)
-                    return OriginalHook(SGE.Toxikon);
-
-            if (GetCooldown(SGE.Phlegma).CooldownRemaining > 45 && gauge.Addersting > 0)
+            if ((GetCooldown(OriginalHook(SGE.Phlegma)).CooldownRemaining > 45 || GetTargetDistance() > 6) && gauge.Addersting > 0 && level >= SGE.Levels.Toxikon)
                 return OriginalHook(SGE.Toxikon);
 
             return actionID;
@@ -113,18 +185,10 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            if (LocalPlayer?.TargetObject is null)
+            if (CurrentTarget is null)
                 return OriginalHook(SGE.Dyskrasia);
 
-            if (level >= SGE.Levels.Dosis3)
-                if (GetCooldown(SGE.Phlegmaga).CooldownRemaining > 45)
-                    return OriginalHook(SGE.Dyskrasia);
-
-            if (level >= SGE.Levels.Dosis2)
-                if (GetCooldown(SGE.Phlegmara).CooldownRemaining > 45)
-                    return OriginalHook(SGE.Dyskrasia);
-
-            if (GetCooldown(SGE.Phlegma).CooldownRemaining > 45)
+            if (GetCooldown(OriginalHook(SGE.Phlegma)).CooldownRemaining > 45)
                 return OriginalHook(SGE.Dyskrasia);
 
             return actionID;
@@ -161,10 +225,10 @@ namespace XIVComboExpandedestPlugin.Combos
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             if ((actionID == SGE.Physis || actionID == SGE.Physis2) &&
-                IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(level >= SGE.Levels.Physis2 ? SGE.Physis2 : SGE.Physis) && LocalPlayer?.CurrentMp <= 9000)
+                IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(level >= SGE.Levels.Physis2 ? SGE.Physis2 : SGE.Physis) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming))
                 return All.LucidDreaming;
 
-            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 ? All.LucidDreaming : actionID;
+            return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
 }

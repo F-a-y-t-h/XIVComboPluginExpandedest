@@ -23,6 +23,7 @@ namespace XIVComboExpandedestPlugin.Combos
             Windbite = 113,
             BattleVoice = 118,
             WanderersMinuet = 3559,
+            Peloton = 7557,
             IronJaws = 3560,
             Sidewinder = 3562,
             EmpyrealArrow = 3558,
@@ -34,6 +35,7 @@ namespace XIVComboExpandedestPlugin.Combos
             BurstShot = 16495,
             ApexArrow = 16496,
             Ladonsbite = 25783,
+            BlastArrow = 25784,
             RadiantFinale = 25785;
 
         public static class Buffs
@@ -41,7 +43,9 @@ namespace XIVComboExpandedestPlugin.Combos
             public const ushort
                 StraightShotReady = 122,
                 ShadowbiteReady = 3002,
-                WanderersMinuet = 2216;
+                WanderersMinuet = 2216,
+                RadiantFinale = 2964,
+                BattleVoice = 141;
         }
 
         public static class Debuffs
@@ -68,23 +72,6 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class BardWanderersPitchPerfectFeature : CustomCombo
-    {
-        protected override CustomComboPreset Preset => CustomComboPreset.BardWanderersPitchPerfectFeature;
-
-        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
-        {
-            if (actionID == BRD.WanderersMinuet)
-            {
-                var gauge = GetJobGauge<BRDGauge>();
-                if (gauge.Song == Song.WANDERER)
-                    return BRD.PitchPerfect;
-            }
-
-            return actionID;
-        }
-    }
-
     internal class BardStraightShotUpgradeFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.BardStraightShotUpgradeFeature;
@@ -105,15 +92,15 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class BardIronJawsFeature : CustomCombo
+    internal class BardIronJawsFeaturePlus : CustomCombo
     {
-        protected override CustomComboPreset Preset => CustomComboPreset.BardIronJawsFeature;
+        protected override CustomComboPreset Preset => CustomComboPreset.BardIronJawsFeaturePlus;
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
             if (actionID == BRD.IronJaws)
             {
-                if (level < BRD.Levels.IronJaws)
+                if (!CanUseAction(BRD.IronJaws))
                 {
                     var venomous = FindTargetEffect(BRD.Debuffs.VenomousBite);
                     var windbite = FindTargetEffect(BRD.Debuffs.Windbite);
@@ -123,7 +110,7 @@ namespace XIVComboExpandedestPlugin.Combos
                             return BRD.VenomousBite;
                         return BRD.Windbite;
                     }
-                    else if (windbite is not null || level < BRD.Levels.Windbite)
+                    else if (windbite is not null || !CanUseAction(BRD.Windbite))
                     {
                         return BRD.VenomousBite;
                     }
@@ -158,6 +145,16 @@ namespace XIVComboExpandedestPlugin.Combos
             }
 
             return actionID;
+        }
+    }
+
+    internal class BardIronJawsFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.BardIronJawsFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return !CanUseAction(BRD.IronJaws) || (!TargetHasEffect(BRD.Debuffs.Stormbite) && !TargetHasEffect(BRD.Debuffs.Windbite)) ? (!CanUseAction(OriginalHook(BRD.Windbite)) ? BRD.VenomousBite : OriginalHook(BRD.Stormbite)) : actionID;
         }
     }
 
@@ -200,7 +197,27 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return (IsActionOffCooldown(BRD.Sidewinder) && !IsActionOffCooldown(BRD.EmpyrealArrow) && level >= BRD.Levels.Sidewinder) ? BRD.Sidewinder : BRD.EmpyrealArrow;
+            var gauge = GetJobGauge<BRDGauge>();
+            if (IsEnabled(CustomComboPreset.BardPerfectSidesFeature) && gauge.Song == Song.WANDERER && (gauge.Repertoire == 3 || (!IsActionOffCooldown(BRD.Sidewinder) && !IsActionOffCooldown(BRD.EmpyrealArrow) && gauge.Repertoire > 0)))
+                return BRD.PitchPerfect;
+            return (IsActionOffCooldown(BRD.Sidewinder) && !IsActionOffCooldown(BRD.EmpyrealArrow) && CanUseAction(BRD.Sidewinder)) ? BRD.Sidewinder : BRD.EmpyrealArrow;
+        }
+    }
+
+    internal class BardPerfectSidesFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.BardPerfectSidesFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == BRD.Sidewinder)
+            {
+                var gauge = GetJobGauge<BRDGauge>();
+                if (gauge.Song == Song.WANDERER && (gauge.Repertoire == 3 || (!IsActionOffCooldown(BRD.Sidewinder) && gauge.Repertoire > 0)))
+                    return BRD.PitchPerfect;
+            }
+
+            return actionID;
         }
     }
 
@@ -210,7 +227,8 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return IsActionOffCooldown(BRD.RagingStrikes) || level < BRD.Levels.BattleVoice || (IsEnabled(CustomComboPreset.BardRadiantFeature) && !IsActionOffCooldown(BRD.BattleVoice) && level < BRD.Levels.RadiantFinale) ? BRD.RagingStrikes : actionID;
+            return actionID == BRD.RadiantFinale && (IsActionOffCooldown(BRD.RagingStrikes) || !CanUseAction(BRD.BattleVoice) ||
+                (IsEnabled(CustomComboPreset.BardRadiantFeature) && !IsActionOffCooldown(BRD.BattleVoice) && level < BRD.Levels.RadiantFinale)) ? BRD.RagingStrikes : actionID;
         }
     }
 
@@ -220,7 +238,28 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return (IsActionOffCooldown(BRD.BattleVoice) || level < BRD.Levels.RadiantFinale) ? BRD.BattleVoice : actionID;
+            return actionID == BRD.RadiantFinale && (level < BRD.Levels.RadiantFinale ||
+                (IsActionOffCooldown(BRD.BattleVoice) && !(IsEnabled(CustomComboPreset.BardBattleVoiceLockoutFeature) && HasEffectAny(BRD.Buffs.BattleVoice) && FindEffectAny(BRD.Buffs.BattleVoice)?.RemainingTime > 3))) ? BRD.BattleVoice : actionID;
+        }
+    }
+
+    internal class BardRadiantLockoutFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.BardRadiantLockoutFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == BRD.RadiantFinale && IsActionOffCooldown(BRD.RadiantFinale) && HasEffectAny(BRD.Buffs.RadiantFinale) && FindEffectAny(BRD.Buffs.RadiantFinale)?.RemainingTime > 3 ? SMN.Physick : actionID;
+        }
+    }
+
+    internal class BardBattleVoiceLockoutFeature : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.BardBattleVoiceLockoutFeature;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            return actionID == BRD.BattleVoice && IsActionOffCooldown(BRD.BattleVoice) && HasEffectAny(BRD.Buffs.BattleVoice) && FindEffectAny(BRD.Buffs.BattleVoice)?.RemainingTime > 3 ? SMN.Physick : actionID;
         }
     }
 
@@ -240,7 +279,8 @@ namespace XIVComboExpandedestPlugin.Combos
 
         protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
         {
-            return !TargetHasEffect(BRD.Debuffs.CausticBite) && !TargetHasEffect(BRD.Debuffs.Stormbite) && !TargetHasEffect(BRD.Debuffs.Windbite) && !TargetHasEffect(BRD.Debuffs.VenomousBite) && level >= BRD.Levels.RainOfDeath ? BRD.RainOfDeath : BRD.Bloodletter;
+            // return !TargetHasEffect(BRD.Debuffs.CausticBite) && !TargetHasEffect(BRD.Debuffs.Stormbite) && !TargetHasEffect(BRD.Debuffs.Windbite) && !TargetHasEffect(BRD.Debuffs.VenomousBite) && CanUseAction(BRD.RainOfDeath) ? BRD.RainOfDeath : BRD.Bloodletter;
+            return (this.FilteredLastComboMove == OriginalHook(BRD.QuickNock) || this.FilteredLastComboMove == OriginalHook(BRD.Shadowbite)) && CanUseAction(BRD.RainOfDeath) ? BRD.RainOfDeath : BRD.Bloodletter;
         }
     }
 }
