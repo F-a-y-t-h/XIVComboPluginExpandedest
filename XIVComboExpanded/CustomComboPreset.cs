@@ -1564,23 +1564,23 @@ namespace XIVComboExpandedestPlugin
         #region BLUE MAGE
 
         [OrderedEnum]
-        [CustomComboInfo("Song of Torment Combo", "Bristle -> Song of Torment", BLU.JobID, BLU.Bristle, BLU.RoseOfDestruction)]
+        [CustomComboInfo("Song of Torment Combo on Bristle", "Bristle -> Song of Torment", BLU.JobID, BLU.Bristle, BLU.RoseOfDestruction)]
         BluDoT = 201,
 
         [OrderedEnum]
-        [CustomComboInfo("Final Sting Combo", "Moon Flute -> Whistle -> Final Sting", BLU.JobID, BLU.FinalSting)]
+        [CustomComboInfo("Final Sting Combo on Final Sting", "Moon Flute -> Whistle -> Final Sting", BLU.JobID, BLU.FinalSting)]
         BluLimitBreak = 202,
 
         [OrderedEnum]
-        [CustomComboInfo("Primal Combo", "Moon Flute -> Primals", BLU.JobID, BLU.Nightbloom)]
+        [CustomComboInfo("Primal Combo on Nightbloom", "Moon Flute -> Primals", BLU.JobID, BLU.Nightbloom)]
         BluBurstCombo = 203,
 
         [OrderedEnum]
-        [CustomComboInfo("Moon Flute Opener", "Moon Flute Opener", BLU.JobID, BLU.Chirp)]
+        [CustomComboInfo("Moon Flute Opener on Chirp", "Moon Flute Opener", BLU.JobID, BLU.Chirp)]
         BluTridentCombo = 204,
 
         [OrderedEnum]
-        [CustomComboInfo("Trident Combo", "", BLU.JobID, BLU.Tingle)]
+        [CustomComboInfo("Trident Combo on Tingle", "", BLU.JobID, BLU.Tingle)]
         BluTingle = 205,
 
         #endregion
