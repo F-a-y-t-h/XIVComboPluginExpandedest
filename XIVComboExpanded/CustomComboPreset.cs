@@ -889,12 +889,16 @@ namespace XIVComboExpandedestPlugin
         PaladinRoyalAuthorityCombo = 1902,
 
         [OrderedEnum]
+        [CustomComboInfo("Royal Authority Atonement Feature", "Replace Royal Authority with Atonement when under the effect of Sword Oath.", PLD.JobID, PLD.RageOfHalone, PLD.RoyalAuthority)]
+        PaladinRoyalAuthorityAtonementFeature = 1903,
+
+        [OrderedEnum]
         [ParentCombo(PaladinRoyalAuthorityCombo)]
         [CustomComboInfo("Royal Authority to Shield Lob", "Replace Royal Authority/Rage of Halone's combo with Shield Lob when out of melee range.", PLD.JobID, PLD.RoyalAuthority, PLD.RageOfHalone)]
         PaladinRoyalLobFeature = 1912,
 
         [OrderedEnum]
-        [CustomComboInfo("Holy Spirit to Atonement", "Replace Holy Spirit with Atonement while Divine Might or Requiescat are not up.", PLD.JobID, PLD.HolySpirit)]
+        [CustomComboInfo("Holy Spirit to Atonement", "Replace Holy Spirit with Atonement while Divine Might or Requiescat are not up.", PLD.JobID, PLD.NotBurstStrike)]
         PaladinNotBurstStrikeToAtonement = 1916,
 
         [OrderedEnum]
@@ -926,11 +930,11 @@ namespace XIVComboExpandedestPlugin
         PaladinNotFatedCircleFeature = 1910,
 
         [OrderedEnum]
-        [CustomComboInfo("Holy Spirit to Holy Circle", "Replace Holy Spirit with Holy Circle if your last combo action was Total Eclipse or Prominence.", PLD.JobID, PLD.HolySpirit)]
+        [CustomComboInfo("Holy Spirit to Holy Circle", "Replace Holy Spirit with Holy Circle if your last combo action was Total Eclipse or Prominence.", PLD.JobID, PLD.NotBurstStrike)]
         PaladinHolySpiritToHolyCircleFeature = 1914,
 
         [OrderedEnum]
-        [CustomComboInfo("Fight or Flight to Goring Blade", "Replace Fight or Flight with Goring Blade while the effect is active.", PLD.JobID, PLD.FightOrFlight)]
+        [CustomComboInfo("Fight or Flight to Goring Blade", "Replace Fight or Flight with Goring Blade while the effect is active.", PLD.JobID, PLD.NotNoMercy)]
         PaladinNotNoMercyToNotSonicBreak = 1915,
 
         [OrderedEnum]
