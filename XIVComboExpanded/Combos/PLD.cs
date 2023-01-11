@@ -37,7 +37,7 @@ namespace XIVComboExpandedestPlugin.Combos
                 NotNoMercy = 76,
                 Requiescat = 1368,
                 SwordOath = 1902,
-                DivineMight = 0;
+                DivineMight = 2673;
         }
 
         public static class Debuffs
@@ -93,7 +93,7 @@ namespace XIVComboExpandedestPlugin.Combos
         }
     }
 
-    internal class PaladinRoyalAuthorityAtonementFeature : CustomCombo
+    /*internal class PaladinRoyalAuthorityAtonementFeature : CustomCombo
     {
         protected override CustomComboPreset Preset => CustomComboPreset.PaladinRoyalAuthorityAtonementFeature;
 
@@ -111,7 +111,7 @@ namespace XIVComboExpandedestPlugin.Combos
         {
             return actionID == PLD.NotBurstStrike && ((!HasEffect(PLD.Buffs.DivineMight) && !HasEffect(PLD.Buffs.Requiescat)) || LocalPlayer?.CurrentMp < 1000) && HasEffect(PLD.Buffs.SwordOath) && InMeleeRange() ? PLD.Atonement : actionID;
         }
-    }
+    }*/
 
     internal class PaladinHolyCircleFeature : CustomCombo
     {

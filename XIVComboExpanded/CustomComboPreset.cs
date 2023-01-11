@@ -888,18 +888,18 @@ namespace XIVComboExpandedestPlugin
         [CustomComboInfo("Royal Authority Combo", "Replace Royal Authority/Rage of Halone with its combo chain.", PLD.JobID, PLD.RoyalAuthority, PLD.RageOfHalone)]
         PaladinRoyalAuthorityCombo = 1902,
 
-        [OrderedEnum]
+        /*[OrderedEnum]
         [CustomComboInfo("Royal Authority Atonement Feature", "Replace Royal Authority with Atonement when under the effect of Sword Oath.", PLD.JobID, PLD.RageOfHalone, PLD.RoyalAuthority)]
-        PaladinRoyalAuthorityAtonementFeature = 1903,
+        PaladinRoyalAuthorityAtonementFeature = 1903,*/
 
         [OrderedEnum]
         [ParentCombo(PaladinRoyalAuthorityCombo)]
         [CustomComboInfo("Royal Authority to Shield Lob", "Replace Royal Authority/Rage of Halone's combo with Shield Lob when out of melee range.", PLD.JobID, PLD.RoyalAuthority, PLD.RageOfHalone)]
         PaladinRoyalLobFeature = 1912,
 
-        [OrderedEnum]
+        /*[OrderedEnum]
         [CustomComboInfo("Holy Spirit to Atonement", "Replace Holy Spirit with Atonement while Divine Might or Requiescat are not up.", PLD.JobID, PLD.NotBurstStrike)]
-        PaladinNotBurstStrikeToAtonement = 1916,
+        PaladinNotBurstStrikeToAtonement = 1916,*/
 
         [OrderedEnum]
         [CustomComboInfo("Prominence Combo", "Replace Prominence with its combo chain.", PLD.JobID, PLD.Prominence, PLD.TotalEclipse)]
@@ -922,7 +922,7 @@ namespace XIVComboExpandedestPlugin
 
         [OrderedEnum]
         [ParentCombo(PaladinRequiescatCombo)]
-        [CustomComboInfo("Requiescat Confiteor Level-sync Feature", "Replace Requiescat with Holy Spirit if Confiteor is not available.", PLD.JobID, PLD.Requiescat)]
+        [CustomComboInfo("Requiescat Confiteor Level-sync Feature", "Replace Requiescat with Holy Spirit if Confiteor is not available, or already used and its combo is not unlocked.", PLD.JobID, PLD.Requiescat)]
         PaladinRequiescatComboSpirit = 1917,
 
         [OrderedEnum]
