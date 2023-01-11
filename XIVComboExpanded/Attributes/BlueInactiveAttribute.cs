@@ -1,4 +1,6 @@
-﻿using System;
+﻿/*
+
+using System;
 using System.Collections.Generic;
 using XIVComboExpandedestPlugin.Services;
 
@@ -26,3 +28,4 @@ namespace XIVComboExpandedestPlugin.Attributes
         internal List<uint> Actions { get; set; } = new();
     }
 }
+*/
