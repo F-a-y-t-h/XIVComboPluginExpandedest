@@ -8,6 +8,16 @@ namespace XIVComboExpandedestPlugin.Combos
         public const byte JobID = 19;
 
         public const uint
+            FightorFlight = 20,
+            GoringBlade = 3538,
+            HolySpirit = 7384,
+            HolyCircle = 16458,
+            Confiteor = 16459,
+            BladeOfFaith = 25748,
+            BladeOfTruth = 25749,
+            BladeOfValor = 25750,
+            Intervene = 16461,
+
             FastBlade = 9,
             RiotBlade = 15,
             ShieldBash = 16,
@@ -34,6 +44,7 @@ namespace XIVComboExpandedestPlugin.Combos
         public static class Buffs
         {
             public const ushort
+                BladeOfFaithReady = 3019,
                 NotNoMercy = 76,
                 Requiescat = 1368,
                 SwordOath = 1902,
@@ -42,22 +53,37 @@ namespace XIVComboExpandedestPlugin.Combos
 
         public static class Debuffs
         {
-            public const ushort Placeholder = 0;
+            public const ushort
+                Placeholder = 0,
+                GoringBlade = 725;
         }
 
         public static class Levels
         {
             public const byte
+                NotSonicBreak = 54,
+                NotFatedCircle = 72,
+                NotGnashingFangCombo = 80,
+
+                FightorFlight = 2,
                 RiotBlade = 4,
+                LowBlow = 12,
+                SpiritsWithin = 30,
+                CircleOfScorn = 50,
                 RageOfHalone = 26,
                 Prominence = 40,
-                CircleOfScorn = 50,
-                NotSonicBreak = 54,
+                GoringBlade = 54,
                 RoyalAuthority = 60,
-                NotFatedCircle = 72,
+                Requiescat = 68,
+                HolyCircle = 72,
+                Intervene = 74,
                 Atonement = 76,
-                NotGnashingFangCombo = 80,
-                Expiacion = 86;
+                Confiteor = 80,
+                Expiacion = 86,
+                BladeOfFaith = 90,
+                BladeOfTruth = 90,
+                BladeOfValor = 90;
+
         }
     }
 
@@ -241,4 +267,46 @@ namespace XIVComboExpandedestPlugin.Combos
             return actionID;
         }
     }
+
+    internal class PaladinRoyalAuthorityCombo_v2 : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.PaladinRoyalAuthorityCombo_v2;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == PLD.RoyalAuthority)
+            {
+                if (HasEffect(PLD.Buffs.Requiescat))
+                {
+                    if (level >= PLD.Levels.NotGnashingFangCombo || OriginalHook(PLD.NotGnashingFangCombo) != PLD.NotGnashingFangCombo)
+                    {
+                        return OriginalHook(PLD.NotGnashingFangCombo);
+                    }
+                    else
+                    {
+                        return PLD.NotBurstStrike;
+                    }
+                }
+
+                if (HasEffect(PLD.Buffs.SwordOath))
+                    return PLD.Atonement;
+                if (HasEffect(PLD.Buffs.DivineMight))
+                    return PLD.NotBurstStrike;
+
+                if (comboTime > 0)
+                {
+                    if (lastComboMove == PLD.FastBlade && level >= PLD.Levels.RiotBlade)
+                        return PLD.RiotBlade;
+
+                    if (lastComboMove == PLD.RiotBlade && level >= PLD.Levels.RageOfHalone)
+                        return OriginalHook(PLD.RageOfHalone);
+                }
+
+                return PLD.FastBlade;
+            }
+
+            return actionID;
+        }
+    }
+
 }

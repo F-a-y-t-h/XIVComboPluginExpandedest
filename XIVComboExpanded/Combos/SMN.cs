@@ -429,4 +429,31 @@ namespace XIVComboExpandedestPlugin.Combos
             return IsActionOffCooldown(All.LucidDreaming) && HasCondition(ConditionFlag.InCombat) && !IsActionOffCooldown(actionID) && LocalPlayer?.CurrentMp <= 9000 && CanUseAction(All.LucidDreaming) ? All.LucidDreaming : actionID;
         }
     }
+
+    internal class SummonerGemstoneRuin : CustomCombo
+    {
+        protected override CustomComboPreset Preset => CustomComboPreset.SummonerGemstoneRuin;
+
+        protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
+        {
+            if (actionID == SMN.Gemshine)
+            {
+                var gauge = GetJobGauge<SMNGauge>();
+
+                if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned)
+                    return OriginalHook(SMN.Ruin1);
+            }
+
+            if (actionID == SMN.PreciousBrilliance)
+            {
+                var gauge = GetJobGauge<SMNGauge>();
+
+                if (!gauge.IsIfritAttuned && !gauge.IsTitanAttuned && !gauge.IsGarudaAttuned)
+                    return OriginalHook(SMN.Outburst);
+            }
+
+            return actionID;
+        }
+    }
+
 }

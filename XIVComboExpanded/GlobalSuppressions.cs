@@ -25,3 +25,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Shush", Scope = "member", Target = "~P:XIVComboExpandedestPlugin.PluginConfiguration.SecretCombos")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "<xxx>", Scope = "member", Target = "~P:XIVComboExpandedestPlugin.XIVComboExpandedestPlugin.Framework")]
 [assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1208:System using directives should be placed before other using directives", Justification = "<xxx>")]
+[assembly: SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1027:Use tabs correctly", Justification = "<fuck spaces tabs is better>", Scope = "member", Target = "~M:XIVComboExpandedestPlugin.Combos.PaladinRoyalAuthorityCombo_V2.Invoke(System.UInt32,System.UInt32,System.Single,System.Byte)~System.UInt32")]

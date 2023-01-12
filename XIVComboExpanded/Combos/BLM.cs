@@ -200,7 +200,10 @@ namespace XIVComboExpandedestPlugin.Combos
                     /*                    if (level >= BLM.Levels.Manafont && LocalPlayer?.CurrentMp < 800 && IsActionOffCooldown(BLM.Manafont)) //Maybe replace Despair itself with Manafont instead.
                                             return BLM.Manafont;*/
                     if (level >= BLM.Levels.Blizzard3 && LocalPlayer?.CurrentMp < 2400)
+                    {
+                        if (HasEffect(BLM.Buffs.Firestarter)) return BLM.Fire3;
                         return BLM.Blizzard3;
+                    }
                 }
 
                 if (gauge.InAstralFire && gauge.ElementTimeRemaining < 3050 && HasEffect(BLM.Buffs.Firestarter) && CustomCombo.IsEnabled(CustomComboPreset.BlackFire4Auto))

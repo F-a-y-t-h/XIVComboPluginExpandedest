@@ -1608,5 +1608,9 @@ namespace XIVComboExpandedestPlugin
         [OrderedEnum] // Faye Extra
         [CustomComboInfo("Trick Suitan", ".", NIN.JobID, NIN.TrickAttack)]
         NinjaTrickFeature = 5006,
+        [OrderedEnum]
+        [ConflictingCombos(PaladinRoyalAuthorityCombo)]
+        [CustomComboInfo("Royal Authority Combo v2", "Replace Royal Authority/Rage of Halone with its combo chain.", PLD.JobID, PLD.RoyalAuthority)]
+        PaladinRoyalAuthorityCombo_v2 = 5007,
     }
 }
