@@ -31,6 +31,7 @@ namespace XIVComboExpandedestPlugin
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         public XIVComboExpandedestPlugin(DalamudPluginInterface pluginInterface)
         {
+            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace();
             FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
 
             pluginInterface.Create<Service>();

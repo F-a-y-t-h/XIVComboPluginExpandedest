@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-
+using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -63,6 +63,8 @@ namespace XIVComboExpandedestPlugin.Combos
         protected byte JobID { get; }
 
         protected uint FilteredLastComboMove { get; set; }
+
+        protected Vector2 Position { get; set; }
 
         protected uint[] FilteredLastComboMoves { get; set; } = new uint[]
         {
@@ -220,7 +222,7 @@ namespace XIVComboExpandedestPlugin.Combos
         /// Gets bool determining if player is moving.
         /// </summary>
         /// <returns>A bool value of whether the player is moving or not.</returns>
-        protected static unsafe bool IsMoving() => AgentMap.Instance() != null && AgentMap.Instance()->IsPlayerMoving > 0 ? true : false;
+        protected static unsafe bool IsMoving() => Service.IconReplacer.IsMoving(); // AgentMap.Instance() != null && AgentMap.Instance()->IsPlayerMoving > 0 ? true : false;
 
         /// <summary>
         /// Determine if the given preset is enabled.

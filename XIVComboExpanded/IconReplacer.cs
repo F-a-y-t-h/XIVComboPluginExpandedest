@@ -26,11 +26,19 @@ namespace XIVComboExpandedestPlugin
         private readonly Hook<IsIconReplaceableDelegate> isIconReplaceableHook;
         private readonly Hook<GetIconDelegate> getIconHook;
 
-        // private Stopwatch tick;
+        private Stopwatch tick;
 
         private IntPtr actionManager = IntPtr.Zero;
 
         private HashSet<uint> comboActionIDs = new();
+
+        private Vector2 position;
+
+        private float playerSpeed;
+
+        private uint movingCounter;
+
+        private bool isPlayerMoving;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IconReplacer"/> class.
@@ -38,6 +46,10 @@ namespace XIVComboExpandedestPlugin
         public unsafe IconReplacer()
         {
             this.clientStructActionManager = ActionManager.Instance();
+
+            this.tick = new Stopwatch();
+            this.tick.Start();
+            XIVComboExpandedestPlugin.Framework.Update += this.OnFrameworkUpdate;
 
             this.customCombos = Assembly.GetAssembly(typeof(CustomCombo))!.GetTypes()
                 .Where(t => t.BaseType == typeof(CustomCombo))
@@ -63,8 +75,8 @@ namespace XIVComboExpandedestPlugin
         {
             this.getIconHook.Dispose();
             this.isIconReplaceableHook.Dispose();
-            // XIVComboExpandedestPlugin.Framework.Update -= this.OnFrameworkUpdate;
-            // this.tick.Stop();
+            XIVComboExpandedestPlugin.Framework.Update -= this.OnFrameworkUpdate;
+            this.tick.Stop();
         }
 
         /// <summary>
@@ -77,6 +89,12 @@ namespace XIVComboExpandedestPlugin
         {
             return clientStructActionManager->GetActionStatus(ActionType.Spell, actionID, targetID, false, true) == 0;
         }
+
+        /// <summary>
+        /// Gets bool determining if player is moving.
+        /// </summary>
+        /// <returns>A bool value of whether the player is moving or not.</returns>
+        internal bool IsMoving() => this.isPlayerMoving;
 
         /// <summary>
         /// Update what action IDs are allowed to be modified. This pulls from <see cref="PluginConfiguration.EnabledActions"/>.
@@ -98,11 +116,11 @@ namespace XIVComboExpandedestPlugin
         /// <returns>The result from the hook.</returns>
         internal uint OriginalHook(uint actionID) => this.getIconHook.Original(this.actionManager, actionID);
 
-        /*private unsafe void OnFrameworkUpdate(Framework dFramework)
+        private unsafe void OnFrameworkUpdate(Framework dFramework)
         {
             try
             {
-                if (this.tick.ElapsedMilliseconds > 25)
+                if (this.tick.ElapsedMilliseconds > 10)
                 {
                     this.tick.Restart();
                     var localPlayer = Service.ClientState.LocalPlayer;
@@ -119,7 +137,7 @@ namespace XIVComboExpandedestPlugin
             {
                 PluginLog.LogError(ex.Message);
             }
-        }*/
+        }
 
         private unsafe uint GetIconDetour(IntPtr actionManager, uint actionID)
         {
